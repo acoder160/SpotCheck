@@ -25,7 +25,7 @@ Android- и iOS-клиенты, SHA-1 и нативный SDK не нужны.
      Google принимает только **https** или `http://localhost`, поэтому адрес вида `http://192.168.x.x` не подойдёт.
      - Локально: https-туннель, например `ngrok http 8080` → `https://xxxx.ngrok-free.app/api/auth/google/callback`.
        На бесплатном ngrok адрес меняется при каждом запуске, и его нужно добавлять заново.
-     - Продакшн: адрес сервера (Oracle Cloud), например `https://api.<домен>/api/auth/google/callback`.
+     - Продакшн: адрес API на Render: `https://skatemap.onrender.com/api/auth/google/callback`.
 4. Скопируйте **Client ID** и **Client secret** этого клиента.
 
 Если раньше создавались Android- или iOS-клиенты, их можно удалить.

@@ -1,4 +1,9 @@
-# Deploying the API on Oracle Cloud (Always Free)
+# Self-hosting on one VM (optional)
+
+> **Production does not use this.** The live API runs on **Render** (Docker web service) with a
+> **Neon** PostgreSQL/PostGIS database, and the web app is on Vercel (see the main README).
+> This folder is an alternative: everything on a single VM of your own. The steps below use
+> Oracle Cloud's Always Free tier as the example, but any Linux VM with Docker works.
 
 One VM runs everything: PostgreSQL 17 + PostGIS, the Spring Boot API and Caddy, which serves
 HTTPS with an automatic Let's Encrypt certificate. The database is not reachable from the

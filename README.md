@@ -1,13 +1,13 @@
 # SpotCheck
 
-[![CI](https://github.com/acoder160/PROY_INTERMODULAR_ANDRII_CHAIKA/actions/workflows/ci.yml/badge.svg)](https://github.com/acoder160/PROY_INTERMODULAR_ANDRII_CHAIKA/actions/workflows/ci.yml)
+[![CI](https://github.com/acoder160/SpotCheck/actions/workflows/ci.yml/badge.svg)](https://github.com/acoder160/SpotCheck/actions/workflows/ci.yml)
 
 **A community map of skate spots for skaters in a city they don't know.** Spots come in photo-first:
 you take the photo on site, pin it inside your GPS radius, then describe it. That way the map only
 shows places someone has actually stood at. Anyone can browse; with an account you can add, rate,
 comment on and report spots. AI moderation keeps the content clean.
 
-> **Live demo:** _add link_ · press **Try the demo** on the login screen. You don't need an account.
+> **Live demo:** [spot-check.live](https://www.spot-check.live/) · press **Try the demo** on the login screen. You don't need an account.
 
 <!-- Screenshots / GIFs: map + clusters, photo-first add flow, spot details, admin swipe moderation -->
 <!-- ![Map](docs/map.gif) -->
@@ -28,17 +28,20 @@ flowchart LR
         W["Web app<br/>React 19 · Vite<br/>react-leaflet"]
     end
 
-    subgraph VM["Oracle Cloud VM (docker compose)"]
-        C["Caddy<br/>HTTPS · Let's Encrypt"]
+    V["Vercel<br/>web app hosting"]
+
+    subgraph R["Render (Docker web service)"]
         A["Spring Boot 3 API<br/>Java 21"]
-        D[("PostgreSQL 17<br/>+ PostGIS")]
     end
+
+    D[("Neon<br/>PostgreSQL + PostGIS")]
 
     CL["Cloudinary<br/>signed uploads"]
     AI["Groq / OpenAI<br/>text + vision moderation"]
     G["Google OAuth"]
 
-    M & W -->|REST + JWT| C --> A --> D
+    W -.->|served by| V
+    M & W -->|REST + JWT over HTTPS| A --> D
     M & W -->|direct upload with<br/>server-signed params| CL
     A -->|moderation chain| AI
     A -->|ID token / PKCE| G
@@ -49,7 +52,7 @@ flowchart LR
 | `spotcheck/` | Java 21, Spring Boot 3.3 (Web, Security, Data JPA, Validation, Actuator), Hibernate Spatial, Flyway, bucket4j, Caffeine, JUnit 5, Testcontainers |
 | `spotcheck-mobile/` | Expo SDK, expo-router, TypeScript, Leaflet in a WebView, expo-camera / location / secure-store, i18next |
 | `spotcheck-web/` | React 19, Vite, react-router, react-leaflet + markercluster, axios, i18next |
-| `deploy/` | Docker Compose: PostGIS + API + Caddy on one VM, daily `pg_dump` backups |
+| `deploy/` | Optional self-hosting on one VM: Docker Compose with PostGIS + API + Caddy, daily `pg_dump` backups (production runs on Render + Neon instead) |
 | `mcp-server/` | MCP server for seeding real spots (Google Places → Cloudinary → DB) |
 | `i18n/` | Master translations for 21 locales, checked and synced into both clients |
 
@@ -110,7 +113,7 @@ flowchart LR
 - **Followers hear about it, but not too often.** A check-in writes one feed line and notifies
   followers ("X is skating at Y") at most once per hour per skater, so hopping between spots
   doesn't flood anyone.
-- **Scaling beyond one VM.** The in-memory broker is enough for one instance, and the state that
+- **Scaling beyond one instance.** The in-memory broker is enough for one instance, and the state that
   matters (check-ins) is already in Postgres, so an instance restart loses nothing. With several
   instances each one would only see the check-ins made through itself. The path out:
   - keep the STOMP endpoint as it is and replace `enableSimpleBroker` with
@@ -209,9 +212,18 @@ provider answers, each feature degrades instead of failing.
 
 ---
 
+## Production
+
+- **API:** a Docker web service on [Render](https://render.com) built from `spotcheck/Dockerfile`
+  (`https://skatemap.onrender.com`). The free plan sleeps after 15 minutes without traffic, so the
+  `Render Keep-Alive` workflow (`.github/workflows/keep_alive.yml`) pings it around the clock.
+- **Database:** [Neon](https://neon.tech) serverless PostgreSQL with PostGIS.
+- **Web app:** [Vercel](https://vercel.com) (`https://www.spot-check.live`).
+- **Images:** Cloudinary.
+
 ## Run it with Docker Compose
 
-The whole stack (PostGIS, API, Caddy) is defined in `deploy/`:
+To run the whole stack yourself (PostGIS, API, Caddy on one machine), use `deploy/`:
 
 ```bash
 cd deploy
@@ -277,7 +289,7 @@ Run the tests (the integration tests need Docker running and are skipped without
 cd spotcheck && ./mvnw verify
 ```
 
-Production deployment (one VM, HTTPS, backups): [`deploy/README.md`](deploy/README.md).
+Self-hosting on your own VM (HTTPS, backups): [`deploy/README.md`](deploy/README.md).
 
 ---
 
@@ -286,7 +298,7 @@ Production deployment (one VM, HTTPS, backups): [`deploy/README.md`](deploy/READ
 | Area | Endpoints |
 |---|---|
 | Auth | `POST /api/auth/{login,register,google,refresh,logout,logout-all,demo}`, Google browser flow `/api/auth/google/{start,callback,exchange}` |
-| Spots | `GET /api/spots` (ETag), `GET /api/spots/nearby`, `POST /api/spots` (`409 duplicate_candidate`, `force`), `DELETE /api/spots/{id}` (admin) |
+| Spots | `GET /api/spots` (ETag), `GET /api/spots/nearby`, `POST /api/spots` (`userLatitude`/`userLongitude` within 250 m, `409 duplicate_candidate`, `force`), `DELETE /api/spots/{id}` (admin) |
 | AI | `POST /api/ai/suggest-tags`, `GET /api/spots/{id}/weather` |
 | Live | `GET /api/spots/live`, `GET /api/spots/{id}/live`, `POST/DELETE /api/spots/{id}/checkin`, `GET/POST /api/spots/{id}/sessions`, `POST/DELETE /api/sessions/{id}/join`, STOMP `/ws` → `/topic/live` |
 | Community | `GET /api/spots/{id}/comments?before=`, `POST /api/comments/{spotId}` (with `parentId` for replies), `PATCH/DELETE /api/comments/{id}`, `POST/DELETE /api/comments/{id}/like`, `POST /api/ratings/{spotId}`, `GET /api/ratings/check/{spotId}`, `POST /api/spots/{id}/reports`, `PATCH/DELETE /api/spots/{id}` (author) |
