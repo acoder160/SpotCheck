@@ -155,7 +155,9 @@ public class AuthController {
     @PostMapping("/demo")
     public ResponseEntity<?> demoLogin(@RequestHeader(value = "X-Client-Type", required = false) String clientType) {
         if (!demoEnabled) throw ApiException.notFound("Demo");
+        // Only the account DemoAccountInitializer made, never a real user who happens to have that name
         User user = userRepository.findByUsername(demoUsername)
+                .filter(u -> u.getEmail().endsWith(spotcheck.config.DemoAccountInitializer.EMAIL_DOMAIN))
                 .orElseThrow(() -> ApiException.unavailable("Demo account is not ready"));
         return issueSession(user, jwtUtil.generateJwtToken(user.getUsername()), clientType);
     }
@@ -182,7 +184,8 @@ public class AuthController {
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest signUpRequest) {
         // "me" would clash with /api/users/me; "deleted_*" is how deleted accounts are renamed
         String wanted = signUpRequest.getUsername().toLowerCase(java.util.Locale.ROOT);
-        if (wanted.equals("me") || wanted.startsWith("deleted_")) {
+        // The demo name too: the demo button would otherwise sign every visitor into that person's account
+        if (wanted.equals("me") || wanted.startsWith("deleted_") || wanted.equalsIgnoreCase(demoUsername)) {
             return ResponseEntity.badRequest().body("Error: Username is already taken!");
         }
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {

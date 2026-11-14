@@ -156,7 +156,9 @@ export default function ReportModal({ spot, endpoint, subject, onClose }: Report
               ) : (
                 <>
                   {!!user && <Ionicons name="flag" size={20} color={Palette.ink} />}
-                  <Text style={styles.primaryText} numberOfLines={1}>{user ? t('report.send') : t('common.login')}</Text>
+                  <Text style={styles.primaryText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+                    {user ? t('report.send') : t('common.login')}
+                  </Text>
                 </>
               )}
             </TouchableOpacity>

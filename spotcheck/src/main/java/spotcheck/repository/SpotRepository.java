@@ -17,10 +17,6 @@ import java.util.List;
 @Repository
 public interface SpotRepository extends JpaRepository<Spot, Long> {
 
-    @Override
-    @EntityGraph(attributePaths = "createdBy")
-    List<Spot> findAll();
-
     /** Public map: only spots that are not hidden by moderation. */
     @EntityGraph(attributePaths = "createdBy")
     List<Spot> findAllByStatus(SpotStatus status);
@@ -28,8 +24,10 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
     @EntityGraph(attributePaths = "createdBy")
     List<Spot> findAllByIdIn(Collection<Long> ids);
 
-    // Buscar spots por usuario creador
-    List<Spot> findByCreatedBy_Id(Long userId);
+    /** Row lock: two ratings at once would each compute the average without the other's vote. */
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("SELECT s FROM Spot s WHERE s.id = :id")
+    java.util.Optional<Spot> findByIdForUpdate(@org.springframework.data.repository.query.Param("id") Long id);
 
     /** A user's spots for their profile, newest first, one page at a time. */
     @EntityGraph(attributePaths = "createdBy")

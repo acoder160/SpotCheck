@@ -23,6 +23,9 @@ import java.util.UUID;
 public class RefreshTokenService {
 
     public static final String COOKIE_NAME = "spotcheck_refresh";
+    static final Duration ROTATION_GRACE = Duration.ofSeconds(10);
+    /** Expired or revoked rows are kept this long (for "active sessions" history), then deleted. */
+    private static final Duration KEEP_OLD_SESSIONS = Duration.ofDays(7);
 
     private final RefreshSessionRepository sessionRepository;
     private final UserRepository userRepository;
@@ -47,12 +50,27 @@ public class RefreshTokenService {
         return createSession(user, UUID.randomUUID());
     }
 
-    @Transactional
+    /**
+     * Rotates a refresh token. Reusing an old one revokes its whole family (the token was probably
+     * stolen). noRollbackFor: that revocation must be saved even though the call then fails.
+     */
+    @Transactional(noRollbackFor = IllegalArgumentException.class)
     public IssuedRefreshToken rotate(String rawToken) {
         RefreshSession current = sessionRepository.findByTokenHashForUpdate(hash(rawToken))
                 .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
 
-        if (current.getRevokedAt() != null || current.getExpiresAt().isBefore(LocalDateTime.now())) {
+        LocalDateTime now = LocalDateTime.now();
+        if (current.getExpiresAt().isBefore(now)) {
+            revokeFamily(current.getFamilyId(), true);
+            throw new IllegalArgumentException("Refresh token was revoked or expired");
+        }
+        if (current.getRevokedAt() != null) {
+            // Two tabs (or a retry) sending the same token a moment apart: the second one gets its own
+            // token in the same family. Only while the family is still live: after a logout it is not.
+            if (current.getRevokedAt().isAfter(now.minus(ROTATION_GRACE))
+                    && sessionRepository.existsByFamilyIdAndRevokedAtIsNullAndExpiresAtAfter(current.getFamilyId(), now)) {
+                return createSession(current.getUser(), current.getFamilyId());
+            }
             revokeFamily(current.getFamilyId(), true);
             throw new IllegalArgumentException("Refresh token was revoked or expired");
         }
@@ -79,6 +97,14 @@ public class RefreshTokenService {
                 session.setRevokedAt(LocalDateTime.now());
             }
         });
+    }
+
+    /** Every rotation adds a row: without this the table only grows. */
+    @org.springframework.scheduling.annotation.Scheduled(fixedDelayString = "${app.refresh.cleanup-interval-ms:21600000}",
+            initialDelay = 60000)
+    @Transactional
+    public void deleteOldSessions() {
+        sessionRepository.deleteOlderThan(LocalDateTime.now().minus(KEEP_OLD_SESSIONS));
     }
 
     public ResponseCookie createCookie(String rawToken) {

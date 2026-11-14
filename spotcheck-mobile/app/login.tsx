@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator,
 import { hasLegalPage, openLegalPage } from '../utils/legal';
 import { Palette, DisplayFont, Radius, MIN_TARGET } from '../constants/theme';
 import GradientFill from '../components/ui/GradientFill';
+import BrandMark from '../components/ui/BrandMark';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import api from '../utils/api';
@@ -96,10 +97,7 @@ export default function LoginScreen() {
       >
         <View style={styles.card}>
           <GradientFill name="authCard" radius={26} />
-          <View style={styles.brandMark}>
-            <GradientFill name="pink" radius={14} />
-            <Text style={styles.brandMarkText}>S</Text>
-          </View>
+          <BrandMark size={68} style={{ marginBottom: 14 }} />
           <Text style={styles.title}>{t('auth.welcomeBack')}</Text>
           <Text style={styles.subtitle}>{t('auth.tagline')}</Text>
 
@@ -140,14 +138,26 @@ export default function LoginScreen() {
           <TouchableOpacity onPress={handleLogin} disabled={isLoading} activeOpacity={0.88}>
             <View style={styles.button}>
               <GradientFill name="pink" radius={26} />
-              {isLoading ? <ActivityIndicator color={Palette.ink} /> : <Text style={styles.buttonText}>{t('auth.loginButton')}</Text>}
+              {isLoading ? (
+                <ActivityIndicator color={Palette.ink} />
+              ) : (
+                <Text style={styles.buttonText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+                  {t('auth.loginButton')}
+                </Text>
+              )}
             </View>
           </TouchableOpacity>
 
           {DEMO_ENABLED && (
             <TouchableOpacity onPress={handleDemo} disabled={isLoading || isDemoLoading} activeOpacity={0.88} accessibilityRole="button">
               <View style={styles.demoButton}>
-                {isDemoLoading ? <ActivityIndicator color={Palette.yellow} /> : <Text style={styles.demoButtonText}>{t('auth.tryDemo')}</Text>}
+                {isDemoLoading ? (
+                  <ActivityIndicator color={Palette.yellow} />
+                ) : (
+                  <Text style={styles.demoButtonText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+                    {t('auth.tryDemo')}
+                  </Text>
+                )}
               </View>
               <Text style={styles.demoHint}>{t('auth.demoHint')}</Text>
             </TouchableOpacity>
@@ -196,10 +206,10 @@ const styles = StyleSheet.create({
 
   label: { color: Palette.white, fontFamily: DisplayFont.bold, fontSize: 18, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8 },
   input: { backgroundColor: Palette.white, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, minHeight: MIN_TARGET, marginBottom: 18, fontSize: 16, color: Palette.ink, borderWidth: 2, borderColor: Palette.white },
-  button: { minHeight: 56, borderRadius: 28, backgroundColor: Palette.pink, borderWidth: 2, borderColor: Palette.ink, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
-  buttonText: { color: Palette.ink, fontFamily: DisplayFont.black, fontSize: 24, letterSpacing: 1, textTransform: 'uppercase' },
-  demoButton: { minHeight: 52, borderRadius: 26, borderWidth: 2, borderColor: Palette.yellow, alignItems: 'center', justifyContent: 'center', marginTop: 12 },
-  demoButtonText: { color: Palette.yellow, fontFamily: DisplayFont.black, fontSize: 20, letterSpacing: 1, textTransform: 'uppercase' },
+  button: { minHeight: 56, paddingVertical: 8, paddingHorizontal: 18, borderRadius: 28, backgroundColor: Palette.pink, borderWidth: 2, borderColor: Palette.ink, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
+  buttonText: { flexShrink: 1, textAlign: 'center', color: Palette.ink, fontFamily: DisplayFont.black, fontSize: 24, letterSpacing: 1, textTransform: 'uppercase' },
+  demoButton: { minHeight: 52, paddingVertical: 8, paddingHorizontal: 18, borderRadius: 26, borderWidth: 2, borderColor: Palette.yellow, alignItems: 'center', justifyContent: 'center', marginTop: 12 },
+  demoButtonText: { flexShrink: 1, textAlign: 'center', color: Palette.yellow, fontFamily: DisplayFont.black, fontSize: 20, letterSpacing: 1, textTransform: 'uppercase' },
   demoHint: { color: Palette.onAsphaltMuted, fontSize: 13, textAlign: 'center', marginTop: 6 },
   footer: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', marginTop: 16 },
   footerText: { color: Palette.onAsphaltMuted, fontSize: 15 },

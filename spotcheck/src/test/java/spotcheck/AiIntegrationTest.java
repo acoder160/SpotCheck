@@ -48,6 +48,7 @@ class AiIntegrationTest extends AbstractIntegrationTest {
     @Autowired private org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     private String bob;
+    private Long bobId;
     private String run;
     private Spot ledge;
 
@@ -65,6 +66,7 @@ class AiIntegrationTest extends AbstractIntegrationTest {
         u.setPassword("not-a-real-hash");
         userRepository.save(u);
         bob = u.getUsername();
+        bobId = u.getId();
         // Somewhere no other test puts spots: Bilbao
         ledge = new Spot();
         ledge.setName("Guggenheim ledges " + run);
@@ -135,8 +137,10 @@ class AiIntegrationTest extends AbstractIntegrationTest {
 
     private org.springframework.test.web.servlet.ResultActions createWithPhoto(String name, double lat, double lng) throws Exception {
         String body = json.writeValueAsString(Map.of("name", name, "latitude", lat, "longitude", lng,
+                "userLatitude", lat, "userLongitude", lng,
                 "spotType", "STREET", "difficultyLevel", "BEGINNER",
-                "mediaUrl", "https://res.cloudinary.com/demo/image/upload/skatemap_spots/u1/new.jpg"));
+                // Must be in bob's own folder: the API refuses photos from another user's folder
+                "mediaUrl", "https://res.cloudinary.com/demo/image/upload/skatemap_spots/u" + bobId + "/new.jpg"));
         return mvc.perform(post("/api/spots")
                 .header("Authorization", "Bearer " + jwtUtil.generateJwtToken(bob))
                 .contentType(MediaType.APPLICATION_JSON).content(body));
@@ -148,6 +152,7 @@ class AiIntegrationTest extends AbstractIntegrationTest {
 
     private org.springframework.test.web.servlet.ResultActions create(String name, double lat, double lng, boolean force) throws Exception {
         String body = json.writeValueAsString(Map.of("name", name, "latitude", lat, "longitude", lng,
+                "userLatitude", lat, "userLongitude", lng,
                 "spotType", "STREET", "difficultyLevel", "BEGINNER", "force", force));
         return mvc.perform(post("/api/spots")
                 .header("Authorization", "Bearer " + jwtUtil.generateJwtToken(bob))

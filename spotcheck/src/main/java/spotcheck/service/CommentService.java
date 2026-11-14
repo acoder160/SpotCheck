@@ -158,8 +158,12 @@ public class CommentService {
     }
 
     public CommentDto edit(Long commentId, String content, String username) {
-        Comment existing = ownComment(commentId, username);
-        if (existing.getContent().equals(content.trim())) return toDto(existing, Map.of(), Map.of(), Set.of());
+        // In a short transaction: toDto reads the lazy author (open-in-view is off)
+        CommentDto unchanged = tx.execute(status -> {
+            Comment existing = ownComment(commentId, username);
+            return existing.getContent().equals(content.trim()) ? toDto(existing, Map.of(), Map.of(), Set.of()) : null;
+        });
+        if (unchanged != null) return unchanged;
         requireAllowed(content);
         return tx.execute(status -> {
             Comment comment = ownComment(commentId, username);

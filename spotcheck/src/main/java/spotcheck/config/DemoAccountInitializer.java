@@ -24,6 +24,8 @@ import java.util.Base64;
 public class DemoAccountInitializer implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DemoAccountInitializer.class);
+    /** .invalid can never be a real mailbox: it marks the account this class created. */
+    public static final String EMAIL_DOMAIN = "@spotcheck.invalid";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -38,13 +40,19 @@ public class DemoAccountInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (userRepository.existsByUsername(username)) return;
+        if (userRepository.existsByUsername(username)) {
+            userRepository.findByUsername(username)
+                    .filter(u -> !u.getEmail().endsWith(EMAIL_DOMAIN))
+                    .ifPresent(u -> log.warn("Username '{}' belongs to a real account: the demo stays off. "
+                            + "Set app.demo.username to another name.", username));
+            return;
+        }
         byte[] secret = new byte[32];
         new SecureRandom().nextBytes(secret);
 
         User demo = new User();
         demo.setUsername(username);
-        demo.setEmail(username + "@spotcheck.invalid");
+        demo.setEmail(username + EMAIL_DOMAIN);
         demo.setPassword(passwordEncoder.encode(Base64.getEncoder().encodeToString(secret)));
         userRepository.save(demo);
         log.info("Demo account '{}' created", username);

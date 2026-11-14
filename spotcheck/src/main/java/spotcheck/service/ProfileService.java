@@ -56,6 +56,8 @@ public class ProfileService {
     private final AiModerationService aiModerationService;
     private final ImageModerationService imageModerationService;
     private final CloudinaryAssets cloudinaryAssets;
+    @org.springframework.beans.factory.annotation.Value("${cloudinary.cloud-name:}")
+    private String cloudinaryCloudName;
     private final PasswordEncoder passwordEncoder;
     private final spotcheck.repository.CheckinRepository checkinRepository;
     private final spotcheck.repository.SessionParticipantRepository participantRepository;
@@ -133,7 +135,7 @@ public class ProfileService {
                 user.setAvatarUrl(null);
             } else if (!avatar.equals(oldAvatar)) {
                 // Only a photo this user uploaded through the app (signed upload into their folder)
-                if (!CloudinaryAssets.isInUserFolder(avatar, user.getId())) {
+                if (!CloudinaryAssets.isOwnUpload(avatar, cloudinaryCloudName, user.getId())) {
                     throw new ApiException(HttpStatus.BAD_REQUEST, "avatarUrl: only photos uploaded through the app are allowed");
                 }
                 // A face is fine here (unlike a spot photo); only forbidden content is refused
@@ -146,7 +148,11 @@ public class ProfileService {
                 user.setAvatarUrl(avatar);
             }
         }
-        userRepository.save(user);
+        if (userRepository.updateProfile(user.getId(), user.getBio(), user.getAvatarUrl()) == 0) {
+            // Deleted while the AI was checking: the new photo has no owner any more
+            if (user.getAvatarUrl() != null && !user.getAvatarUrl().equals(oldAvatar)) cloudinaryAssets.destroy(user.getAvatarUrl());
+            throw ApiException.notFound("User");
+        }
 
         if (oldAvatar != null && !oldAvatar.equals(user.getAvatarUrl())
                 && CloudinaryAssets.isInUserFolder(oldAvatar, user.getId())) {

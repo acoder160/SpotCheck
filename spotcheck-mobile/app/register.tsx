@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import { Palette, DisplayFont, Radius, MIN_TARGET } from '../constants/theme';
 import GradientFill from '../components/ui/GradientFill';
+import BrandMark from '../components/ui/BrandMark';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import api from '../utils/api';
@@ -94,10 +95,7 @@ export default function RegisterScreen() {
       >
         <View style={styles.card}>
           <GradientFill name="authCard" radius={26} />
-          <View style={styles.brandMark}>
-            <GradientFill name="pink" radius={14} />
-            <Text style={styles.brandMarkText}>S</Text>
-          </View>
+          <BrandMark size={68} style={{ marginBottom: 14 }} />
           <Text style={styles.title}>{t('auth.joinCrew')}</Text>
           <Text style={styles.subtitle}>{t('auth.createAccountSubtitle')}</Text>
 
@@ -176,7 +174,13 @@ export default function RegisterScreen() {
           <TouchableOpacity onPress={handleRegister} disabled={isLoading} activeOpacity={0.88}>
             <View style={styles.button}>
               <GradientFill name="pink" radius={26} />
-              {isLoading ? <ActivityIndicator color={Palette.ink} /> : <Text style={styles.buttonText}>{t('auth.createAccount')}</Text>}
+              {isLoading ? (
+                <ActivityIndicator color={Palette.ink} />
+              ) : (
+                <Text style={styles.buttonText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+                  {t('auth.createAccount')}
+                </Text>
+              )}
             </View>
           </TouchableOpacity>
 
@@ -214,8 +218,8 @@ const styles = StyleSheet.create({
 
   label: { color: Palette.white, fontFamily: DisplayFont.bold, fontSize: 18, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8 },
   input: { backgroundColor: Palette.white, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, minHeight: MIN_TARGET, marginBottom: 18, fontSize: 16, color: Palette.ink, borderWidth: 2, borderColor: Palette.white },
-  button: { minHeight: 56, borderRadius: 28, backgroundColor: Palette.pink, borderWidth: 2, borderColor: Palette.ink, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
-  buttonText: { color: Palette.ink, fontFamily: DisplayFont.black, fontSize: 24, letterSpacing: 1, textTransform: 'uppercase' },
+  button: { minHeight: 56, paddingVertical: 8, paddingHorizontal: 18, borderRadius: 28, backgroundColor: Palette.pink, borderWidth: 2, borderColor: Palette.ink, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
+  buttonText: { flexShrink: 1, textAlign: 'center', color: Palette.ink, fontFamily: DisplayFont.black, fontSize: 24, letterSpacing: 1, textTransform: 'uppercase' },
   consentRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 6 },
   checkbox: { width: 28, height: 28, borderRadius: 8, borderWidth: 2, borderColor: Palette.white, alignItems: 'center', justifyContent: 'center' },
   checkboxOn: { backgroundColor: Palette.pink, borderColor: Palette.ink },

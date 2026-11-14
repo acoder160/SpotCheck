@@ -30,8 +30,11 @@ class GoogleAuthServiceTest {
         when(encoder.encode(anyString())).thenReturn("encoded");
         when(users.findByEmail(anyString())).thenReturn(Optional.empty());
         when(users.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
-        service = new GoogleAuthService(users, encoder, verifier);
+        refreshTokens = mock(RefreshTokenService.class);
+        service = new GoogleAuthService(users, encoder, refreshTokens, verifier);
     }
+
+    private RefreshTokenService refreshTokens;
 
     @Test
     void unverifiedEmailIsRejected() throws Exception {
@@ -55,15 +58,36 @@ class GoogleAuthServiceTest {
     }
 
     @Test
-    void existingEmailLogsIntoThatAccount() throws Exception {
+    void existingVerifiedEmailLogsIntoThatAccount() throws Exception {
         User existing = new User();
         existing.setUsername("old_skater");
         existing.setEmail("skater@gmail.com");
+        existing.setPassword("their-hash");
+        existing.setEmailVerified(true);
         when(users.findByEmail("skater@gmail.com")).thenReturn(Optional.of(existing));
         token("good", "Skater@Gmail.com", true, "Skater");
 
         assertSame(existing, service.authenticate("good"));
+        assertEquals("their-hash", existing.getPassword());
         verify(users, never()).save(any());
+        verify(refreshTokens, never()).revokeAll(any());
+    }
+
+    @Test
+    void firstGoogleSignInDropsAPasswordSomeoneElseMayHaveSet() throws Exception {
+        // Someone registered with this address before its owner ever signed in with Google
+        User squatted = new User();
+        squatted.setUsername("squatter");
+        squatted.setEmail("skater@gmail.com");
+        squatted.setPassword("attacker-hash");
+        when(users.findByEmail("skater@gmail.com")).thenReturn(Optional.of(squatted));
+        token("good", "skater@gmail.com", true, "Skater");
+
+        assertSame(squatted, service.authenticate("good"));
+
+        assertEquals("encoded", squatted.getPassword());
+        assertTrue(squatted.isEmailVerified());
+        verify(refreshTokens).revokeAll(squatted);
     }
 
     @Test
@@ -83,7 +107,7 @@ class GoogleAuthServiceTest {
 
     @Test
     void notConfiguredWithoutClientIds() {
-        assertFalse(new GoogleAuthService(users, mock(PasswordEncoder.class), "").isConfigured());
+        assertFalse(new GoogleAuthService(users, mock(PasswordEncoder.class), refreshTokens, "").isConfigured());
         assertTrue(service.isConfigured());
     }
 

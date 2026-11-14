@@ -30,7 +30,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: Palette.pink,
         tabBarInactiveTintColor: Palette.onAsphaltMuted,
         tabBarStyle: { backgroundColor: Palette.asphalt, borderTopColor: Palette.asphaltRaised, borderTopWidth: 2 },
-        tabBarLabelStyle: { fontFamily: DisplayFont.bold, fontSize: 13, letterSpacing: 0.6, textTransform: 'uppercase' },
+        tabBarLabelStyle: { fontFamily: DisplayFont.bold, fontSize: 11.5, letterSpacing: 0.2, textTransform: 'uppercase' },
       }}>
       <Tabs.Screen name="index" options={{ title: t('social.map'), tabBarIcon: icon('map', 'map-outline') }} />
       <Tabs.Screen name="feed" options={{ title: t('social.feed'), tabBarIcon: icon('newspaper', 'newspaper-outline') }} />

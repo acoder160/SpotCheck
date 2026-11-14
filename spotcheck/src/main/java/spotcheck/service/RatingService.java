@@ -40,7 +40,8 @@ public class RatingService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> ApiException.notFound("User"));
 
-        Spot spot = spotRepository.findById(spotId)
+        // Locked until commit: the next rating of this spot waits and then sees this vote in its average
+        Spot spot = spotRepository.findByIdForUpdate(spotId)
                 .filter(Spot::isPublic)
                 .orElseThrow(() -> ApiException.notFound("Spot"));
 

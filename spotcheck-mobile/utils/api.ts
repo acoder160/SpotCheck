@@ -1,4 +1,4 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosError, InternalAxiosRequestConfig, isAxiosError } from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { API_BASE_URL } from '../constants/api';
@@ -50,6 +50,10 @@ export const clearSession = async () => {
   }
   await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
 };
+
+/** The server refused the refresh token. A network error or a 5xx keeps it for the next try. */
+export const isSessionRejected = (error: unknown) =>
+  isAxiosError(error) && [400, 401, 403].includes(error.response?.status ?? 0);
 
 /**
  * One refresh at a time: refresh tokens rotate and the server treats a reused one as stolen (it
@@ -146,7 +150,7 @@ api.interceptors.response.use(
       return api(originalRequest);
     } catch (refreshError) {
       processQueue(refreshError);
-      await clearSession();
+      if (isSessionRejected(refreshError)) await clearSession();
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;

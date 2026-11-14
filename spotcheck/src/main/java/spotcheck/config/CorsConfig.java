@@ -45,7 +45,7 @@ public class CorsConfig {
         config.setExposedHeaders(List.of("Set-Cookie"));
 
         //  Métodos permitidos
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);

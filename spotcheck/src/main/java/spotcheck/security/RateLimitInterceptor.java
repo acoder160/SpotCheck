@@ -45,7 +45,9 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         if (!enabled) return true;
 
-        Limit limit = limitFor(request.getMethod(), request.getRequestURI());
+        // Decoded path, the one Spring routes on: the raw URI lets "/api/auth/l%6Fgin" skip the login limit
+        Limit limit = limitFor(request.getMethod(),
+                org.springframework.web.util.UrlPathHelper.defaultInstance.getPathWithinApplication(request));
         if (limit == null) return true;
 
         String key;

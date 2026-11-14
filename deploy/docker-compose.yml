@@ -2,10 +2,18 @@
 #   cd deploy && docker compose up -d --build
 # Settings and secrets come from deploy/.env (copy .env.example; never commit it).
 
+# Docker keeps container logs forever by default: cap them so they never fill the disk pgdata lives on
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   db:
     build: ./db
     restart: unless-stopped
+    logging: *logging
     environment:
       POSTGRES_DB: skatemap
       POSTGRES_USER: skatemap
@@ -27,6 +35,7 @@ services:
   app:
     build: ../spotcheck
     restart: unless-stopped
+    logging: *logging
     env_file: .env
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/skatemap
@@ -57,6 +66,7 @@ services:
   caddy:
     image: caddy:2.10
     restart: unless-stopped
+    logging: *logging
     environment:
       API_DOMAIN: ${API_DOMAIN:?set API_DOMAIN in deploy/.env}
       ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in deploy/.env}

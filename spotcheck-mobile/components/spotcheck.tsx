@@ -1,10 +1,11 @@
 import React, { useCallback, useRef, useEffect, useState, type ComponentRef } from 'react';
 import { WebView } from 'react-native-webview';
-import { StyleSheet, View, Linking, Image, Dimensions, AppState } from 'react-native';
+import { StyleSheet, View, Linking, Dimensions, AppState } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { CARTO_API_KEY } from '../constants/api';
 import { Palette, spotTypePaint } from '../constants/theme';
 import { cleanLabel } from '../utils/text';
+import { SPOT_ICON_URIS } from '../constants/spotIcons';
 
 
 function serializeForInlineScript(value: unknown): string {
@@ -91,15 +92,9 @@ export default function SpotCheck({
     }
   }, [stringsJson]);
 
-  // Iconos propios de cada tipo de spot
-  const ICONS = {
-    STREET: Image.resolveAssetSource(require('../assets/images/icon_street.png'))?.uri ?? '',
-    PARK: Image.resolveAssetSource(require('../assets/images/icon_park.png'))?.uri ?? '',
-    SKATEPARK: Image.resolveAssetSource(require('../assets/images/icon_park.png'))?.uri ?? '',
-    RAMPS: Image.resolveAssetSource(require('../assets/images/icon_ramps.png'))?.uri ?? '',
-    RAIL: Image.resolveAssetSource(require('../assets/images/icon_rail.png'))?.uri ?? '',
-    LEDGE: Image.resolveAssetSource(require('../assets/images/icon_ledge.png'))?.uri ?? '',
-  };
+  // Iconos propios de cada tipo de spot, as data URIs: an asset uri is not a URL the WebView can load
+  // in release builds (see scripts/gen-spot-icons.js)
+  const ICONS = SPOT_ICON_URIS;
 
   // Sincronizar spots. The parent builds a new array on every render (saving a spot, live counts…):
   // only a real change in the data redraws the markers, so an open popup stays open.
@@ -329,7 +324,7 @@ export default function SpotCheck({
           .popup-icon-btn svg { display: block; }
           .popup-icon-btn:active { transform: scale(0.94); }
           .popup-icon-btn.is-on { color: var(--paint-yellow, #FFD400); }
-          .popup-card { width: 240px; font-family: system-ui, Roboto, sans-serif; color: var(--asphalt); }
+          .popup-card { width: 270px; max-width: calc(100vw - 48px); font-family: system-ui, Roboto, sans-serif; color: var(--asphalt); }
           .popup-image { display: block; width: 100%; height: 112px; object-fit: cover; background: var(--concrete) linear-gradient(160deg, #D3D3CE, var(--concrete)); }
           .popup-image-empty { display: flex; align-items: center; justify-content: center; }
           .popup-info { padding: 12px 14px 14px; }
@@ -364,16 +359,22 @@ export default function SpotCheck({
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
           }
 
-          .btn-container { display: flex; gap: 8px; margin-top: 12px; }
+          .btn-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
           .details-btn, .directions-btn {
-            flex: 1;
+            flex: 1 1 112px;
+            min-width: 0;
             min-height: 48px;
             padding: 6px 8px;
             border: 2px solid var(--asphalt);
             border-radius: 24px;
-            font: 900 18px/1 var(--display);
-            letter-spacing: 0.8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font: 900 15px/1.15 var(--display);
+            letter-spacing: 0.4px;
             text-transform: uppercase;
+            text-align: center;
+            overflow-wrap: anywhere;
             color: var(--asphalt);
             cursor: pointer;
             transition: transform 0.12s ease;
@@ -648,9 +649,25 @@ export default function SpotCheck({
           });
           // Skaters per spot right now, kept in sync by the app
           window.LIVE = {};
+          // A check-in anywhere reaches every client: only the markers whose count changed get a new
+          // icon, instead of rebuilding every marker (which also closed and reopened the popup)
+          var currentMarkers = [];
+          var currentAsBubble = false;
           window.__setLive = function(counts) {
+            var before = window.LIVE;
             window.LIVE = counts || {};
-            if (typeof window.renderVisibleSpots === 'function') window.renderVisibleSpots();
+            var changed = false;
+            currentMarkers.forEach(function(marker) {
+              var now = window.LIVE[marker.spotId] || 0;
+              if ((before[marker.spotId] || 0) === now) return;
+              changed = true;
+              marker.setIcon(currentAsBubble
+                ? (now > 0 ? singleSpotLiveIcon : singleSpotClusterIcon)
+                : getSpotIcon(marker.spotType, now));
+              if (marker.spotId === selectedSpotId) setSelectedClass(marker, true, false);
+            });
+            // Cluster bubbles read LIVE in iconCreateFunction
+            if (changed && currentAsBubble) clusteredSpotsLayer.refreshClusters();
           };
 
           function escapeHtml(value) {
@@ -674,7 +691,7 @@ export default function SpotCheck({
             live = live || 0;
             var key = spotType + '|' + live;
             if (!spotIcons[key]) {
-              var iconUrl = SPOT_ICONS[spotType] || SPOT_ICONS.STREET;
+              var iconUrl = SPOT_ICONS[spotType === 'SKATEPARK' ? 'PARK' : spotType] || SPOT_ICONS.STREET;
               var isPark = spotType === 'PARK' || spotType === 'SKATEPARK';
               var size = isPark ? 46 : 41;
               var badge = live > 0 ? '<span class="live-badge">' + (live > 9 ? '9+' : live) + '</span>' : '';
@@ -779,8 +796,9 @@ export default function SpotCheck({
 
             var marker = L.marker([spot.latitude, spot.longitude + (lngOffset || 0)], {
               icon: showAsPlusOneBubble ? ((window.LIVE[spot.id] || 0) > 0 ? singleSpotLiveIcon : singleSpotClusterIcon) : icon
-            }).bindPopup(buildPopup, { closeButton: false, maxWidth: 260, minWidth: 240, autoPanPaddingTopLeft: L.point(16, 96), autoPanPaddingBottomRight: L.point(16, 120) });
+            }).bindPopup(buildPopup, { closeButton: false, maxWidth: 280, minWidth: 260, autoPanPaddingTopLeft: L.point(16, 96), autoPanPaddingBottomRight: L.point(16, 120) });
             marker.spotId = spot.id;
+            marker.spotType = spotType;
             return marker;
           }
 
@@ -833,6 +851,8 @@ export default function SpotCheck({
             }).filter(function(marker) {
               return marker !== null;
             });
+            currentMarkers = markers;
+            currentAsBubble = showSingleAsBubble;
 
             if (map.hasLayer(individualSpotsLayer)) {
               map.removeLayer(individualSpotsLayer);

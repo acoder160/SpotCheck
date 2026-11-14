@@ -22,12 +22,14 @@ export default function CameraOverlay({ cameraRef, onCapture, onCancel }: Camera
           </View>
           <View style={styles.cameraFooter}>
             <TouchableOpacity style={styles.cancelBtn} onPress={onCancel} accessibilityRole="button">
-              <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
+              <Text style={styles.cancelBtnText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>
+                {t('common.cancel')}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.captureBtn} onPress={onCapture} accessibilityRole="button" accessibilityLabel={t('camera.takePhoto')}>
               <View style={styles.captureBtnInner} />
             </TouchableOpacity>
-            <View style={{width: 60}} />
+            <View style={{ flex: 1 }} />
           </View>
         </View>
     </View>
@@ -41,6 +43,6 @@ const styles = StyleSheet.create({
   cameraFooter: { backgroundColor: Palette.asphalt, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingTop: 20, paddingBottom: 40 },
   captureBtn: { width: 76, height: 76, borderRadius: 38, borderWidth: 4, borderColor: Palette.white, justifyContent: 'center', alignItems: 'center' },
   captureBtnInner: { width: 56, height: 56, borderRadius: 28, backgroundColor: Palette.pink },
-  cancelBtn: { minWidth: 76, minHeight: MIN_TARGET, justifyContent: 'center' },
+  cancelBtn: { flex: 1, minWidth: 76, minHeight: MIN_TARGET, justifyContent: 'center', paddingRight: 8 },
   cancelBtnText: { color: Palette.white, fontFamily: DisplayFont.bold, fontSize: 20, letterSpacing: 0.8, textTransform: 'uppercase' }
 });

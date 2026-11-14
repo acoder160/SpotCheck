@@ -175,8 +175,11 @@ public class SessionService {
         boolean upcoming = session.getStartsAt().isAfter(LocalDateTime.now());
         Spot spot = session.getSpot();
         spot.getName(); // loaded now: the notices below are written after the session row is gone
-        List<User> joined = participantRepository.findBySessionId(session.getId()).stream()
-                .map(SessionParticipant::getUser).toList();
+        List<SessionParticipant> participants = participantRepository.findBySessionId(session.getId());
+        List<User> joined = participants.stream().map(SessionParticipant::getUser).toList();
+        // The database would cascade, but these rows are loaded: Hibernate (6.6+) refuses to flush
+        // loaded rows that point at a deleted session, so they go first
+        participantRepository.deleteAll(participants);
         sessionRepository.delete(session);
         if (upcoming) {
             for (User u : joined) {

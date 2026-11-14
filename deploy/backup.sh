@@ -12,7 +12,9 @@ mkdir -p "$BACKUP_DIR"
 file="$BACKUP_DIR/spotcheck-$(date +%F-%H%M).dump"
 # Write to a temp name first so a failed dump never looks like a good backup
 docker compose exec -T db pg_dump -U skatemap -d skatemap -Fc > "$file.part"
+# A dump that pg_restore can't read is not a backup (set -e stops here and keeps the .part for a look)
+docker compose exec -T db pg_restore -l < "$file.part" > /dev/null
 mv "$file.part" "$file"
 
-find "$BACKUP_DIR" -name 'spotcheck-*.dump' -mtime +"$KEEP_DAYS" -delete
+find "$BACKUP_DIR" \( -name 'spotcheck-*.dump' -o -name 'spotcheck-*.dump.part' \) -mtime +"$KEEP_DAYS" -delete
 echo "$(date -Is) backup ok: $file ($(du -h "$file" | cut -f1))"

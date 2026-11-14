@@ -251,7 +251,9 @@ export default function ProfileView({ username }: { username: string }) {
         {TABS.map((key) => (
           <TouchableOpacity key={key} style={[styles.tab, tab === key && styles.tabOn]} onPress={() => { if (key !== tab) { setList(null); setTab(key); } }}
                             accessibilityRole="tab" accessibilityState={{ selected: tab === key }}>
-            <Text style={[styles.tabText, tab === key && styles.tabTextOn]} numberOfLines={1}>{t(`social.${key}Count`)}</Text>
+            <Text style={[styles.tabText, tab === key && styles.tabTextOn]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+              {t(`social.${key}Count`)}
+            </Text>
             <View style={[styles.tabCount, tab === key && styles.tabCountOn]}>
               <Text style={[styles.tabCountText, tab === key && styles.tabCountTextOn]}>{counts[key]}</Text>
             </View>
@@ -288,11 +290,11 @@ const styles = StyleSheet.create({
   since: { color: Palette.inkMuted, fontSize: 14, marginTop: 2 },
   bio: { fontSize: 16, lineHeight: 22, color: Palette.ink },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  primaryBtn: { minHeight: MIN_TARGET, paddingHorizontal: 22, borderRadius: Radius.control, borderWidth: 2, borderColor: Palette.ink, backgroundColor: Palette.pink, alignItems: 'center', justifyContent: 'center' },
-  outlineBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: MIN_TARGET, paddingHorizontal: 16, borderRadius: Radius.control, borderWidth: 2, borderColor: Palette.ink, backgroundColor: Palette.white },
-  outlineText: { fontFamily: DisplayFont.bold, fontSize: 18, letterSpacing: 0.6, textTransform: 'uppercase', color: Palette.ink },
+  primaryBtn: { maxWidth: '100%', minHeight: MIN_TARGET, paddingVertical: 8, paddingHorizontal: 22, borderRadius: Radius.control, borderWidth: 2, borderColor: Palette.ink, backgroundColor: Palette.pink, alignItems: 'center', justifyContent: 'center' },
+  outlineBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, maxWidth: '100%', minHeight: MIN_TARGET, paddingVertical: 8, paddingHorizontal: 16, borderRadius: Radius.control, borderWidth: 2, borderColor: Palette.ink, backgroundColor: Palette.white },
+  outlineText: { flexShrink: 1, textAlign: 'center', fontFamily: DisplayFont.bold, fontSize: 18, letterSpacing: 0.6, textTransform: 'uppercase', color: Palette.ink },
   iconBtn: { width: MIN_TARGET, height: MIN_TARGET, borderRadius: MIN_TARGET / 2, borderWidth: 2, borderColor: Palette.ink, alignItems: 'center', justifyContent: 'center', backgroundColor: Palette.white },
-  stats: { flexDirection: 'row', gap: 20 },
+  stats: { flexDirection: 'row', flexWrap: 'wrap', gap: 20 },
   statLabel: { color: Palette.inkMuted, fontSize: 14 },
   statValue: { color: Palette.ink, fontFamily: DisplayFont.black, fontSize: 20 },
   sessions: { gap: 8 },
@@ -305,8 +307,8 @@ const styles = StyleSheet.create({
   sessionTag: { maxWidth: '35%', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 2, borderColor: Palette.ink, backgroundColor: Palette.white },
   sessionTagHost: { backgroundColor: Palette.asphalt },
   sessionTagText: { fontSize: 13, fontWeight: '800', color: Palette.ink, textTransform: 'uppercase' },
-  tabs: { flexDirection: 'row', gap: 8 },
-  tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: MIN_TARGET, paddingHorizontal: 8, borderRadius: Radius.control, borderWidth: 2, borderColor: Palette.ink, backgroundColor: Palette.white },
+  tabs: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  tab: { flexGrow: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: MIN_TARGET, paddingVertical: 6, paddingHorizontal: 12, borderRadius: Radius.control, borderWidth: 2, borderColor: Palette.ink, backgroundColor: Palette.white },
   tabOn: { backgroundColor: Palette.asphalt },
   tabText: { flexShrink: 1, fontFamily: DisplayFont.bold, fontSize: 16, letterSpacing: 0.4, textTransform: 'uppercase', color: Palette.ink },
   tabTextOn: { color: Palette.white },

@@ -62,3 +62,9 @@ Thumbs.db
 .agents/
 .claude/
 .impeccable/
+
+# Python bytecode
+__pycache__/
+
+# Firebase config with API key (kept local)
+spotcheck-mobile/google-services.json

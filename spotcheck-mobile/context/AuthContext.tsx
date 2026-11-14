@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 import api, {
   clearSession,
   getRefreshToken,
+  isSessionRejected,
   refreshSession,
   saveRefreshToken,
   setAccessToken,
@@ -39,8 +40,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setToken(response.data.token);
         setUser(response.data.username);
         setRole(response.data.role ?? null);
-      } catch {
-        await clearSession();
+      } catch (error) {
+        // Offline at startup: stay signed out for now, but keep the refresh token for the next launch
+        if (isSessionRejected(error)) await clearSession();
       } finally {
         setIsLoading(false);
       }

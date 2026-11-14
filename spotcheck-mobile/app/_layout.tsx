@@ -17,6 +17,13 @@ import { AuthProvider, useAuth } from '../context/AuthContext';
 import { UnreadProvider } from '../context/UnreadContext';
 import { leaveAuthScreens } from '../utils/googleBrowserSignIn';
 import { onPushTapped, registerForPush } from '../utils/push';
+import LaunchSplash from '../components/ui/LaunchSplash';
+
+// Release builds: keep debug logging out of logcat (console.warn / console.error still report)
+if (!__DEV__) {
+  console.log = () => {};
+  console.debug = () => {};
+}
 
 /** Registers this device for push after sign-in, and opens the right screen when a push is tapped. */
 function PushBridge() {
@@ -61,13 +68,13 @@ export default function RootLayout() {
       <PushBridge />
       <ThemeProvider value={DarkTheme}>
         {/* Envolvemos todo en una View negra por si el Stack falla un frame */}
-        <View style={{ flex: 1, backgroundColor: '#1E1E1E' }}>
+        <View style={{ flex: 1, backgroundColor: '#141414' }}>
           <Stack 
             screenOptions={{ 
               headerShown: false, 
-              contentStyle: { backgroundColor: '#1E1E1E' },
+              contentStyle: { backgroundColor: '#141414' },
               // Eliminamos el header transparente por si acaso
-              headerStyle: { backgroundColor: '#1E1E1E' },
+              headerStyle: { backgroundColor: '#141414' },
             }}
           >
             {/*Forzamos animación de desvanecimiento (fade) sin deslizamiento */}
@@ -86,6 +93,7 @@ export default function RootLayout() {
             <Stack.Screen name="saved" />
             <Stack.Screen name="profile-edit" />
           </Stack>
+          <LaunchSplash />
         </View>
       </ThemeProvider>
       </UnreadProvider>

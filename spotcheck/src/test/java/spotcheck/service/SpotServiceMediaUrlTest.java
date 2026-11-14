@@ -117,6 +117,8 @@ class SpotServiceMediaUrlTest {
         dto.setDescription("Ledges");
         dto.setLatitude(40.4);
         dto.setLongitude(-3.7);
+        dto.setUserLatitude(40.4);
+        dto.setUserLongitude(-3.7);
         dto.setSpotType(SpotType.STREET);
         dto.setDifficultyLevel(DifficultyLevel.BEGINNER);
         dto.setMediaUrl(mediaUrl);

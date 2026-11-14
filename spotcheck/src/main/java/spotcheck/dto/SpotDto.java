@@ -45,6 +45,15 @@ public class SpotDto {
     /** Request only: create even though a possible duplicate was found (the user confirmed). */
     private Boolean force;
 
+    /** Request only: where the device is. A spot can only be added from where it is (SpotService). */
+    @DecimalMin("-90.0")
+    @DecimalMax("90.0")
+    private Double userLatitude;
+
+    @DecimalMin("-180.0")
+    @DecimalMax("180.0")
+    private Double userLongitude;
+
     public SpotDto() {}
 
     public Long getId() { return id; }
@@ -70,4 +79,10 @@ public class SpotDto {
     @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
     public Boolean getForce() { return force; }
     public void setForce(Boolean force) { this.force = force; }
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
+    public Double getUserLatitude() { return userLatitude; }
+    public void setUserLatitude(Double userLatitude) { this.userLatitude = userLatitude; }
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
+    public Double getUserLongitude() { return userLongitude; }
+    public void setUserLongitude(Double userLongitude) { this.userLongitude = userLongitude; }
 }

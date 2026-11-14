@@ -322,7 +322,9 @@ export default function SpotDetailsModal({ visible, onClose, spot, token, onSpot
               <TouchableOpacity style={styles.directionsBtn} onPress={openDirections} accessibilityRole="button">
                 <GradientFill name="pink" radius={24} />
                 <Ionicons name="navigate" size={22} color={Palette.ink} />
-                <Text style={styles.directionsText}>{t('popup.directions')}</Text>
+                <Text style={styles.directionsText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+                  {t('popup.directions')}
+                </Text>
               </TouchableOpacity>
 
               <LiveSection spotId={spot.id} me={user} liveCount={liveCount} onBeforeNavigate={onClose} />
@@ -379,7 +381,13 @@ export default function SpotDetailsModal({ visible, onClose, spot, token, onSpot
                     accessibilityRole="button"
                   >
                     <GradientFill name="pink" radius={14} />
-                    {isSubmitting ? <ActivityIndicator color={Palette.ink} /> : <Text style={styles.sendText}>{t('popup.send')}</Text>}
+                    {isSubmitting ? (
+                      <ActivityIndicator color={Palette.ink} />
+                    ) : (
+                      <Text style={styles.sendText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+                        {t('popup.send')}
+                      </Text>
+                    )}
                   </TouchableOpacity>
                 </View>
               )}
@@ -449,8 +457,8 @@ const styles = StyleSheet.create({
   factsRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 },
   distance: { fontFamily: DisplayFont.black, fontSize: 48, lineHeight: 50, color: Palette.ink },
   desc: { fontSize: 16, lineHeight: 22, color: Palette.inkMuted, marginTop: 14 },
-  directionsBtn: { marginTop: 16, minHeight: 52, borderRadius: 26, backgroundColor: Palette.pink, borderWidth: 2, borderColor: Palette.ink, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  directionsText: { fontFamily: DisplayFont.black, fontSize: 22, letterSpacing: 1, color: Palette.ink, textTransform: 'uppercase' },
+  directionsBtn: { marginTop: 16, minHeight: 52, paddingHorizontal: 18, borderRadius: 26, backgroundColor: Palette.pink, borderWidth: 2, borderColor: Palette.ink, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  directionsText: { flexShrink: 1, fontFamily: DisplayFont.black, fontSize: 22, letterSpacing: 1, color: Palette.ink, textTransform: 'uppercase' },
 
   ratingBox: { flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 20, paddingTop: 16, borderTopWidth: 1, borderTopColor: Palette.hairline },
   ratingNumber: { fontFamily: DisplayFont.black, fontSize: 44, color: Palette.ink },
@@ -465,20 +473,20 @@ const styles = StyleSheet.create({
 
   commentInputBox: { flexDirection: 'row', gap: 10, marginTop: 14 },
   input: { flex: 1, backgroundColor: Palette.white, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, minHeight: MIN_TARGET, maxHeight: 96, borderWidth: 2, borderColor: Palette.ink, fontSize: 16, color: Palette.ink },
-  sendBtn: { backgroundColor: Palette.pink, justifyContent: 'center', paddingHorizontal: 20, borderRadius: 16, borderWidth: 2, borderColor: Palette.ink, minHeight: MIN_TARGET },
+  sendBtn: { backgroundColor: Palette.pink, justifyContent: 'center', paddingHorizontal: 14, borderRadius: 16, borderWidth: 2, borderColor: Palette.ink, minHeight: MIN_TARGET },
   sendText: { fontFamily: DisplayFont.black, fontSize: 18, letterSpacing: 0.8, color: Palette.ink, textTransform: 'uppercase' },
 
-  accordionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: MIN_TARGET, marginTop: 14, borderBottomWidth: 1, borderBottomColor: Palette.hairline },
-  accordionTitle: { fontFamily: DisplayFont.bold, fontSize: 20, letterSpacing: 0.6, color: Palette.ink, textTransform: 'uppercase' },
+  accordionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, minHeight: MIN_TARGET, marginTop: 14, borderBottomWidth: 1, borderBottomColor: Palette.hairline },
+  accordionTitle: { flex: 1, fontFamily: DisplayFont.bold, fontSize: 20, letterSpacing: 0.6, color: Palette.ink, textTransform: 'uppercase' },
   hidden: { display: 'none' },
   authorRow: { marginTop: -2, marginBottom: 10, minHeight: 32, justifyContent: 'center' },
   authorText: { fontSize: 15, color: Palette.inkMuted },
   authorName: { fontWeight: '800', color: Palette.ink },
   actionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 },
-  actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: MIN_TARGET, minWidth: MIN_TARGET, justifyContent: 'center', paddingHorizontal: 14, borderRadius: Radius.control, borderWidth: 2, borderColor: Palette.ink, backgroundColor: Palette.white },
+  actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, maxWidth: '100%', minHeight: MIN_TARGET, minWidth: MIN_TARGET, justifyContent: 'center', paddingVertical: 8, paddingHorizontal: 14, borderRadius: Radius.control, borderWidth: 2, borderColor: Palette.ink, backgroundColor: Palette.white },
   reportLink: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: MIN_TARGET, marginTop: 20, alignSelf: 'center', paddingHorizontal: 16 },
   reportLinkText: { color: Palette.inkMuted, fontSize: 14, fontWeight: '600', textDecorationLine: 'underline' },
-  actionText: { fontFamily: DisplayFont.bold, fontSize: 17, letterSpacing: 0.6, textTransform: 'uppercase', color: Palette.ink },
+  actionText: { flexShrink: 1, textAlign: 'center', fontFamily: DisplayFont.bold, fontSize: 17, letterSpacing: 0.6, textTransform: 'uppercase', color: Palette.ink },
   commentsFailed: { alignItems: 'center', gap: 4 },
   retryBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: MIN_TARGET, paddingHorizontal: 16, borderRadius: Radius.control, borderWidth: 2, borderColor: Palette.ink },
   retryText: { fontFamily: DisplayFont.bold, fontSize: 18, letterSpacing: 0.6, textTransform: 'uppercase', color: Palette.ink },

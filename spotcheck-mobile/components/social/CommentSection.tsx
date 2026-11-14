@@ -186,7 +186,13 @@ export default function CommentSection({ spotId, me, reloadKey, onCountChange, o
           <TouchableOpacity style={[styles.sendBtn, (sending || !draft.trim()) && { opacity: 0.6 }]} onPress={send}
                             disabled={sending || !draft.trim()} accessibilityRole="button">
             <GradientFill name="pink" radius={14} />
-            {sending ? <ActivityIndicator color={Palette.ink} /> : <Text style={styles.sendText}>{t('popup.send')}</Text>}
+            {sending ? (
+              <ActivityIndicator color={Palette.ink} />
+            ) : (
+              <Text style={styles.sendText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+                {t('popup.send')}
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
       ) : (
@@ -348,7 +354,9 @@ function CommentItem({ comment, threadId, spotId, me, onPatch, onRemove, onRepli
                             disabled={busy || !text.trim()} accessibilityRole="button">
             <GradientFill name="pink" radius={14} />
             {busy ? <ActivityIndicator color={Palette.ink} /> : (
-              <Text style={styles.sendText}>{mode === 'edit' ? t('social.save') : t('popup.send')}</Text>
+              <Text style={styles.sendText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+                {mode === 'edit' ? t('social.save') : t('popup.send')}
+              </Text>
             )}
           </TouchableOpacity>
         </View>
@@ -375,10 +383,10 @@ const styles = StyleSheet.create({
   actionText: { fontSize: 14, fontWeight: '600', color: Palette.inkMuted },
   inputRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
   input: { flex: 1, backgroundColor: Palette.white, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, minHeight: MIN_TARGET, maxHeight: 120, borderWidth: 2, borderColor: Palette.ink, fontSize: 16, color: Palette.ink },
-  sendBtn: { backgroundColor: Palette.pink, justifyContent: 'center', paddingHorizontal: 18, borderRadius: 16, borderWidth: 2, borderColor: Palette.ink, minHeight: MIN_TARGET },
+  sendBtn: { backgroundColor: Palette.pink, justifyContent: 'center', paddingHorizontal: 14, borderRadius: 16, borderWidth: 2, borderColor: Palette.ink, minHeight: MIN_TARGET },
   sendText: { fontFamily: DisplayFont.black, fontSize: 18, letterSpacing: 0.8, color: Palette.ink, textTransform: 'uppercase' },
-  outlineBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: MIN_TARGET, paddingHorizontal: 16, borderRadius: Radius.control, borderWidth: 2, borderColor: Palette.ink, backgroundColor: Palette.white },
-  outlineText: { fontFamily: DisplayFont.bold, fontSize: 18, letterSpacing: 0.6, textTransform: 'uppercase', color: Palette.ink },
+  outlineBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, maxWidth: '100%', minHeight: MIN_TARGET, paddingVertical: 8, paddingHorizontal: 16, borderRadius: Radius.control, borderWidth: 2, borderColor: Palette.ink, backgroundColor: Palette.white },
+  outlineText: { flexShrink: 1, textAlign: 'center', fontFamily: DisplayFont.bold, fontSize: 18, letterSpacing: 0.6, textTransform: 'uppercase', color: Palette.ink },
   center: { alignSelf: 'center', marginTop: 8 },
   error: { color: Palette.danger, fontSize: 14, marginTop: 6 },
 });

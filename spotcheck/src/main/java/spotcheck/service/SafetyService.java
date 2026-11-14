@@ -21,7 +21,6 @@ import spotcheck.repository.UserBlockRepository;
 import spotcheck.repository.UserRepository;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * Tools every app with user-generated content needs: blocking people and reporting comments and
@@ -44,10 +43,12 @@ public class SafetyService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final UserLookup userLookup;
+    private final CloudinaryAssets cloudinaryAssets;
 
     public SafetyService(UserBlockRepository blockRepository, ContentReportRepository reportRepository,
                          FollowRepository followRepository, CommentRepository commentRepository,
-                         UserRepository userRepository, UserLookup userLookup) {
+                         UserRepository userRepository, UserLookup userLookup, CloudinaryAssets cloudinaryAssets) {
+        this.cloudinaryAssets = cloudinaryAssets;
         this.blockRepository = blockRepository;
         this.reportRepository = reportRepository;
         this.followRepository = followRepository;
@@ -86,20 +87,6 @@ public class SafetyService {
         return blockRepository.findByBlockerIdOrderByIdDesc(me.getId(), PageRequest.of(0, 200)).stream()
                 .map(b -> new BlockedUser(b.getBlocked().getUsername(), b.getBlocked().getAvatarUrl()))
                 .toList();
-    }
-
-    /** Ids of the users the signed-in user blocked (empty when anonymous). */
-    public Set<Long> blockedByCurrent() {
-        return userLookup.current().map(me -> Set.copyOf(blockRepository.blockedIds(me.getId()))).orElse(Set.of());
-    }
-
-    /** True when either user blocked the other. */
-    public boolean areBlocked(User a, User b) {
-        return blockRepository.existsBetween(a.getId(), b.getId());
-    }
-
-    public boolean hasBlocked(User blocker, User target) {
-        return blockRepository.existsByBlockerIdAndBlockedId(blocker.getId(), target.getId());
     }
 
     // --- Reports on comments and profiles ---
@@ -176,6 +163,8 @@ public class SafetyService {
             commentRepository.findById(report.getTargetId()).ifPresent(commentRepository::delete);
         } else if (action == Action.CLEAR_PROFILE && report.getTargetType() == Target.USER) {
             userRepository.findById(report.getTargetId()).ifPresent(u -> {
+                // The photo would otherwise stay public at its URL
+                if (CloudinaryAssets.isInUserFolder(u.getAvatarUrl(), u.getId())) cloudinaryAssets.destroy(u.getAvatarUrl());
                 u.setBio(null);
                 u.setAvatarUrl(null);
                 userRepository.save(u);

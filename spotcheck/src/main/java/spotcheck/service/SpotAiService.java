@@ -49,6 +49,8 @@ public class SpotAiService {
 
     private final ImageModerationService vision;
     private final UserLookup userLookup;
+    @org.springframework.beans.factory.annotation.Value("${cloudinary.cloud-name:}")
+    private String cloudinaryCloudName;
 
     public SpotAiService(ImageModerationService vision, UserLookup userLookup) {
         this.vision = vision;
@@ -63,7 +65,7 @@ public class SpotAiService {
      */
     public TagSuggestion suggestTags(String username, String mediaUrl) {
         User user = userLookup.require(username);
-        if (!CloudinaryAssets.isInUserFolder(mediaUrl, user.getId())) {
+        if (!CloudinaryAssets.isOwnUpload(mediaUrl, cloudinaryCloudName, user.getId())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "mediaUrl: only photos uploaded through the app are allowed");
         }
         JsonNode answer = vision.askAboutPhoto(TAGS_PROMPT, "Suggest the labels for this spot photo.", mediaUrl, 250);

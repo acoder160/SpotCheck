@@ -43,9 +43,14 @@ api.interceptors.request.use(
  * would sign the user out. Everyone waiting shares the same request instead.
  */
 let refreshInFlight = null;
+// Across tabs too: they share the cookie, so a tab waits for the other's refresh and then sends
+// the new cookie. Without Web Locks the server still accepts a token reused a few seconds apart.
+const postRefresh = () => (navigator.locks
+    ? navigator.locks.request('spotcheck-refresh', () => api.post('/auth/refresh'))
+    : api.post('/auth/refresh'));
 export const refreshSession = () => {
     if (!refreshInFlight) {
-        refreshInFlight = api.post('/auth/refresh')
+        refreshInFlight = postRefresh()
             .then((response) => {
                 setAccessToken(response.data.token);
                 return response;

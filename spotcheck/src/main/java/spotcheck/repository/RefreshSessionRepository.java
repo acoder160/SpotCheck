@@ -22,4 +22,12 @@ public interface RefreshSessionRepository extends JpaRepository<RefreshSession, 
     List<RefreshSession> findByFamilyId(UUID familyId);
 
     List<RefreshSession> findByUserId(Long userId);
+
+    /** True while the family still has a usable token (not logged out, not revoked for reuse). */
+    boolean existsByFamilyIdAndRevokedAtIsNullAndExpiresAtAfter(UUID familyId, java.time.LocalDateTime now);
+
+    /** Old rows: expired, or revoked some time ago. Nothing reads them any more. */
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("DELETE FROM RefreshSession s WHERE s.expiresAt < :cutoff OR s.revokedAt < :cutoff")
+    int deleteOlderThan(@Param("cutoff") java.time.LocalDateTime cutoff);
 }

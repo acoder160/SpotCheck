@@ -9,10 +9,29 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://skatemap.onrender.com",
+        "EXPO_PUBLIC_WEB_URL": "https://spot-check.live",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "620654525736-uh4ohjud914834l4g3uiveu8v5ibd5pv.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "620654525736-irv5f19miflrtuamojv77m0u69ec5b7m.apps.googleusercontent.com",
+        "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "duzj7jrl1",
+        "EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET": "spotcheck_preset",
+        "EXPO_PUBLIC_CARTO_API_KEY": "cb1_4pbs_1_7e28abe7fa8f46a9d76232c7"
+      }
+    },
+    "production-apk": {
+      "extends": "production",
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
     }
   },
   "submit": {

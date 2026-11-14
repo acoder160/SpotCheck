@@ -29,6 +29,7 @@ const MODERATION_ERRORS: Record<string, string> = {
   photo_unclear: 'errors.photoUnclear',
   photo_not_place: 'errors.photoNotPlace',
   text_rejected: 'errors.textRejected',
+  location_required: 'errors.gpsWaiting',
 };
 
 const NO_FAVORITES: number[] = [];
@@ -140,9 +141,12 @@ export default function HomeScreen() {
   const editedRef = useRef<Set<string>>(new Set()); // type / level chosen by the user: the AI leaves them alone
 
   // Lógica para recargar spots (ahora funciona también sin token para invitados)
-  const handleReloadSpots = async () => {
-    if (isRefreshing) return;
+  // A ref instead of the isRefreshing state, so the callback below stays stable across refreshes
+  const refreshingRef = useRef(false);
+  const handleReloadSpots = useCallback(async () => {
+    if (refreshingRef.current) return;
 
+    refreshingRef.current = true;
     setIsRefreshing(true);
 
     try {
@@ -150,14 +154,17 @@ export default function HomeScreen() {
     } catch (error) {
       console.error("Error recargando spots:", error);
     } finally {
+      refreshingRef.current = false;
       setIsRefreshing(false);
     }
-  };
+  }, [fetchSpots]);
 
   useFocusEffect(
     useCallback(() => {
       handleReloadSpots();
-    }, [token, fetchSpots])
+      // token is listed on purpose: signing in or out reloads the spots
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token, handleReloadSpots])
   );
 
   useEffect(() => { 
@@ -337,6 +344,8 @@ export default function HomeScreen() {
     }
     setFormError(null);
     if (!newSpotLocation || !formData.name.trim() || !capturedPhoto) { setFormError(t('errors.missingData')); return; }
+    // The server checks that the spot is near the device, so it needs the device's position too
+    if (!userLocation) { setFormError(t('errors.gpsWaiting')); return; }
 
     setIsUploading(true);
     let finalImageUrl: string;
@@ -351,6 +360,7 @@ export default function HomeScreen() {
     try {
       await api.post(`/spots`, {
         ...formData, latitude: newSpotLocation.lat, longitude: newSpotLocation.lng, mediaUrl: finalImageUrl,
+        userLatitude: userLocation.lat, userLongitude: userLocation.lng,
         ...(force ? { force: true } : {}),
       }, { headers: { Authorization: `Bearer ${token}` } });
       
@@ -370,6 +380,10 @@ export default function HomeScreen() {
       }
       const serverError = error.response?.data?.error; // Captura errores de Bucket4j
       const serverMessage = error.response?.data?.message; // Captura errores de IA o Validación
+      if (data?.code === 'spot_too_far') {
+        setFormError(t('errors.tooFar', { meters: Number(data.meters) || 0 }));
+        return;
+      }
       const moderationKey = MODERATION_ERRORS[error.response?.data?.code];
 
       const finalMsg = (moderationKey && t(moderationKey)) || serverError || serverMessage ||
@@ -465,7 +479,9 @@ export default function HomeScreen() {
           style={[styles.pill, styles.filterPill]}
         >
           <Ionicons name="options" size={20} color={Palette.white} />
-          <Text style={styles.pillText} numberOfLines={1}>{t('map.filters')}</Text>
+          <Text style={styles.pillText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+            {t('map.filters')}
+          </Text>
           {activeFilterCount > 0 && (
             <View style={styles.countBadge}><Text style={styles.countBadgeText}>{activeFilterCount}</Text></View>
           )}
@@ -504,7 +520,9 @@ export default function HomeScreen() {
             style={[styles.pill, styles.userPill, styles.accountGroup]}
           >
             <Ionicons name="person" size={18} color={Palette.ink} />
-            <Text style={[styles.pillText, styles.userPillText]} numberOfLines={1}>{user}</Text>
+            <Text style={[styles.pillText, styles.userPillText]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+              {user}
+            </Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
@@ -515,7 +533,9 @@ export default function HomeScreen() {
             style={[styles.pill, styles.userPill, styles.accountGroup]}
           >
             <Ionicons name="person" size={18} color={Palette.ink} />
-            <Text style={[styles.pillText, styles.userPillText]} numberOfLines={1}>{t('map.enter')}</Text>
+            <Text style={[styles.pillText, styles.userPillText]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+              {t('map.enter')}
+            </Text>
           </TouchableOpacity>
         )}
         </View>
@@ -734,7 +754,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 4,
   },
-  fabAdd: { backgroundColor: Palette.pink, paddingHorizontal: 16, minWidth: 144 },
+  fabAdd: { backgroundColor: Palette.pink, paddingHorizontal: 16, minWidth: 144, maxWidth: '88%' },
   fabClose: { backgroundColor: Palette.asphalt, width: 56, borderColor: Palette.white },
   fabText: { fontFamily: DisplayFont.black, fontSize: 22, letterSpacing: 0.8, textTransform: 'uppercase', color: Palette.ink, flexShrink: 1 },
 });

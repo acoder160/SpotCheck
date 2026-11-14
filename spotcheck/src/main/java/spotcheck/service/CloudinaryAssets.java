@@ -60,6 +60,14 @@ public class CloudinaryAssets {
                 .orElse(false);
     }
 
+    /** True if the photo is in this user's folder of our own Cloudinary account (any account when cloudName is unset). */
+    static boolean isOwnUpload(String mediaUrl, String cloudName, Long userId) {
+        String prefix = cloudName == null || cloudName.isBlank()
+                ? "https://res.cloudinary.com/"
+                : "https://res.cloudinary.com/" + cloudName + "/";
+        return mediaUrl != null && mediaUrl.startsWith(prefix) && isInUserFolder(mediaUrl, userId);
+    }
+
     /** Smaller copy for the AI checks: faster to download and fewer image tokens. */
     static String previewUrl(String mediaUrl) {
         if (mediaUrl == null || !mediaUrl.contains(UPLOAD_SEGMENT)) return mediaUrl;

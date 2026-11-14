@@ -33,18 +33,22 @@ public class GoogleAuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
     private final GoogleIdTokenVerifier verifier;
+    private final RefreshTokenService refreshTokenService;
 
     @Autowired
     public GoogleAuthService(UserRepository userRepository,
                              PasswordEncoder encoder,
+                             RefreshTokenService refreshTokenService,
                              @Value("${google.client-ids:}") String clientIdsProperty) {
-        this(userRepository, encoder, buildVerifier(clientIdsProperty));
+        this(userRepository, encoder, refreshTokenService, buildVerifier(clientIdsProperty));
     }
 
     /** For tests: inject a verifier (null = not configured). */
-    GoogleAuthService(UserRepository userRepository, PasswordEncoder encoder, GoogleIdTokenVerifier verifier) {
+    GoogleAuthService(UserRepository userRepository, PasswordEncoder encoder,
+                      RefreshTokenService refreshTokenService, GoogleIdTokenVerifier verifier) {
         this.userRepository = userRepository;
         this.encoder = encoder;
+        this.refreshTokenService = refreshTokenService;
         this.verifier = verifier;
     }
 
@@ -76,7 +80,21 @@ public class GoogleAuthService {
 
         return userRepository.findByEmail(normalizedEmail)
                 .or(() -> userRepository.findByEmail(email))
+                .map(this::claimByGoogle)
                 .orElseGet(() -> createUser(normalizedEmail, (String) payload.get("name")));
+    }
+
+    /**
+     * Registration doesn't check the email, so anyone could have registered with this address and set
+     * the password. The first Google sign-in proves who owns it: that password and every old session
+     * stop working. After that the account is the Google user's.
+     */
+    private User claimByGoogle(User user) {
+        if (user.isEmailVerified()) return user;
+        user.setPassword(encoder.encode(UUID.randomUUID().toString() + UUID.randomUUID()));
+        user.setEmailVerified(true);
+        refreshTokenService.revokeAll(user);   // also bumps tokenVersion and saves the user
+        return user;
     }
 
     private GoogleIdToken.Payload verify(String idTokenString) {
@@ -97,6 +115,7 @@ public class GoogleAuthService {
         User user = new User();
         user.setUsername(uniqueUsername(displayName, email));
         user.setEmail(email);
+        user.setEmailVerified(true);
         // Google account: a random password nobody knows (sign-in is always through Google)
         user.setPassword(encoder.encode(UUID.randomUUID().toString() + UUID.randomUUID()));
         return userRepository.save(user);

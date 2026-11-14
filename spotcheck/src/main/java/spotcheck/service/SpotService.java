@@ -82,7 +82,11 @@ public class SpotService {
     /** Photo comparisons per new spot: each costs a vision call, so only the closest candidates get one. */
     static final int MAX_PHOTO_COMPARISONS = 2;
 
+    /** The app lets you add a spot within 200 m of you; the extra 50 m is GPS drift between the tap and the save. */
+    static final double MAX_ADD_DISTANCE_METERS = 250;
+
     public SpotDto createSpot(SpotDto spotDto, String username) {
+        requireUserNearSpot(spotDto);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> ApiException.notFound("User"));
 
@@ -124,6 +128,32 @@ public class SpotService {
         });
         spotListCache.invalidate();
         return created;
+    }
+
+    /**
+     * Spots are added on site, so the map stays real. The position comes from the client and can be
+     * faked; this stops a plain HTTP request from dropping spots anywhere, not a determined spoofer.
+     */
+    static void requireUserNearSpot(SpotDto dto) {
+        if (dto.getUserLatitude() == null || dto.getUserLongitude() == null) {
+            // Builds from before this check don't send the position: tell those users to update
+            throw new ApiException(HttpStatus.BAD_REQUEST, "location_required",
+                    "Your location is needed to add a spot. Please update the app.");
+        }
+        double meters = metersBetween(dto.getUserLatitude(), dto.getUserLongitude(), dto.getLatitude(), dto.getLongitude());
+        if (meters > MAX_ADD_DISTANCE_METERS) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "spot_too_far",
+                    "You have to be within 200 m of the spot to add it.", Map.of("meters", Math.round(meters)));
+        }
+    }
+
+    /** Great-circle distance in metres (haversine); plenty precise for a few hundred metres. */
+    static double metersBetween(double lat1, double lng1, double lat2, double lng2) {
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLng = Math.toRadians(lng2 - lng1);
+        double a = Math.pow(Math.sin(dLat / 2), 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.pow(Math.sin(dLng / 2), 2);
+        return 2 * 6_371_000 * Math.asin(Math.sqrt(a));
     }
 
     /**
@@ -260,10 +290,7 @@ public class SpotService {
     /** Only images uploaded to our own Cloudinary account in this user's folder may be attached to a spot. */
     private void requireOwnCloudinaryUrl(String mediaUrl, Long userId) {
         if (mediaUrl == null) return;
-        String prefix = cloudinaryCloudName == null || cloudinaryCloudName.isBlank()
-                ? "https://res.cloudinary.com/"
-                : "https://res.cloudinary.com/" + cloudinaryCloudName + "/";
-        if (!mediaUrl.startsWith(prefix) || !CloudinaryAssets.isInUserFolder(mediaUrl, userId)) {
+        if (!CloudinaryAssets.isOwnUpload(mediaUrl, cloudinaryCloudName, userId)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "mediaUrl: only photos uploaded through your account are allowed");
         }
     }

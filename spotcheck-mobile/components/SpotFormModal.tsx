@@ -118,7 +118,9 @@ export default function SpotFormModal({
                     accessibilityLabel={t('form.retakePhoto')}
                   >
                     <Ionicons name="camera" size={18} color={Palette.white} />
-                    <Text style={styles.retakeChipText} numberOfLines={1}>{t('form.retakePhoto')}</Text>
+                    <Text style={styles.retakeChipText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+                      {t('form.retakePhoto')}
+                    </Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -231,7 +233,9 @@ export default function SpotFormModal({
               {isUploading ? (
                 <ActivityIndicator color={Palette.ink} />
               ) : (
-                <Text style={styles.saveBtnText}>{cleanLabel(t('form.save'))}</Text>
+                <Text style={styles.saveBtnText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+                  {cleanLabel(t('form.save'))}
+                </Text>
               )}
             </TouchableOpacity>
           </View>
@@ -283,6 +287,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 10,
     bottom: 10,
+    maxWidth: '90%',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
@@ -293,7 +298,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Palette.ink,
   },
-  photoTagText: { fontSize: 14, fontWeight: '700', color: Palette.ink },
+  photoTagText: { flexShrink: 1, fontSize: 14, fontWeight: '700', color: Palette.ink },
   photoTagRejected: { borderColor: Palette.danger },
   retakeChip: {
     position: 'absolute',
@@ -356,6 +361,7 @@ const styles = StyleSheet.create({
     borderColor: Palette.ink,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 8,
     paddingHorizontal: 20,
   },
   saveBtnBusy: { opacity: 0.7 },

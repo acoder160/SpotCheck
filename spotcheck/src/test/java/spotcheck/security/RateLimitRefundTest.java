@@ -52,6 +52,18 @@ class RateLimitRefundTest {
     }
 
     @Test
+    void anEncodedPathStillGetsItsLimit() throws Exception {
+        // "/api/auth/l%6Fgin" routes to the login handler: it must not skip the login limit
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/auth/l%6Fgin");
+        request.setRemoteAddr("10.0.0.7");
+        int allowed = 0;
+        for (int i = 0; i < 50; i++) {
+            if (interceptor.preHandle(request, new MockHttpServletResponse(), new Object())) allowed++;
+        }
+        assertThat(allowed).isLessThan(50);
+    }
+
+    @Test
     void otherStatusesStillCount() throws Exception {
         assertThat(attempt(400)).isTrue();
         assertThat(attempt(400)).isTrue();

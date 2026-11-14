@@ -42,6 +42,13 @@ export default function AdminScreen() {
   const [commentsFor, setCommentsFor] = useState<ModerationItem | null>(null);
   const [toast, setToast] = useState<{ kind: 'undo' | 'error' | 'success'; text: string } | null>(null);
   const pendingRef = useRef<Pending | null>(null);
+  // Decisions on their way to the server: reloading the queue before they land would bring those spots back
+  const inFlightRef = useRef(new Set<Promise<unknown>>());
+  const track = useCallback(<T,>(promise: Promise<T>) => {
+    inFlightRef.current.add(promise);
+    promise.finally(() => inFlightRef.current.delete(promise)).catch(() => {});
+    return promise;
+  }, []);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showToast = useCallback((next: { kind: 'undo' | 'error' | 'success'; text: string }) => {
@@ -77,16 +84,6 @@ export default function AdminScreen() {
     return () => { cancelled = true; };
   }, [isAdmin, filter, reloadKey, applyPage, failPage]);
 
-  // The deck ran out but the server has more: decided spots have left the queue, so page 0 is new
-  useEffect(() => {
-    if (!deck || deck.length > 0 || totalPages <= 1 || loadFailed) return undefined;
-    let cancelled = false;
-    fetchQueue(filter, 0, 20)
-      .then((page) => { if (!cancelled) applyPage(page); })
-      .catch(() => { if (!cancelled) failPage(); });
-    return () => { cancelled = true; };
-  }, [deck, totalPages, loadFailed, filter, applyPage, failPage]);
-
   const commitPending = useCallback(async () => {
     const pending = pendingRef.current;
     if (!pending) return;
@@ -94,14 +91,26 @@ export default function AdminScreen() {
     pendingRef.current = null;
     setToast((current) => (current?.kind === 'undo' ? null : current));
     try {
-      if (pending.kind === 'photo') await removePhoto(pending.item.id);
-      else await removeSpot(pending.item.id);
+      await track<unknown>(pending.kind === 'photo' ? removePhoto(pending.item.id) : removeSpot(pending.item.id));
       refreshCounts();
     } catch {
       setDeck((prev) => [pending.item, ...(prev ?? [])]);
       showToast({ kind: 'error', text: t('admin.actionFailed') });
     }
-  }, [refreshCounts, showToast, t]);
+  }, [track, refreshCounts, showToast, t]);
+
+  // The deck ran out but the server has more: decided spots have left the queue, so page 0 is new
+  useEffect(() => {
+    if (!deck || deck.length > 0 || totalPages <= 1 || loadFailed) return undefined;
+    let cancelled = false;
+    // Send the pending removal now and wait for every decision, or page 0 still holds those spots
+    commitPending();
+    Promise.allSettled([...inFlightRef.current])
+      .then(() => fetchQueue(filter, 0, 20))
+      .then((page) => { if (!cancelled) applyPage(page); })
+      .catch(() => { if (!cancelled) failPage(); });
+    return () => { cancelled = true; };
+  }, [deck, totalPages, loadFailed, filter, commitPending, applyPage, failPage]);
 
   useEffect(() => () => { commitPending(); }, [commitPending]);
 
@@ -114,13 +123,13 @@ export default function AdminScreen() {
     commitPending();
     dropTop();
     try {
-      await keepSpot(item.id);
+      await track(keepSpot(item.id));
       refreshCounts();
     } catch {
       setDeck((prev) => [item, ...(prev ?? [])]);
       showToast({ kind: 'error', text: t('admin.actionFailed') });
     }
-  }, [commitPending, dropTop, refreshCounts, showToast, t]);
+  }, [commitPending, dropTop, track, refreshCounts, showToast, t]);
 
   const destructive = useCallback((item: ModerationItem, kind: 'spot' | 'photo') => {
     commitPending();
@@ -255,7 +264,9 @@ export default function AdminScreen() {
           <Text style={styles.toastText} numberOfLines={2}>{toast.text}</Text>
           {toast.kind === 'undo' && (
             <TouchableOpacity onPress={undo} style={styles.undoBtn} accessibilityRole="button">
-              <Text style={styles.undoText}>{t('admin.undo')}</Text>
+              <Text style={styles.undoText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+                {t('admin.undo')}
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -500,7 +511,7 @@ const styles = StyleSheet.create({
     borderColor: Palette.ink,
     backgroundColor: Palette.sheet,
   },
-  retryText: { fontFamily: DisplayFont.bold, fontSize: 17, textTransform: 'uppercase', color: Palette.ink },
+  retryText: { flexShrink: 1, textAlign: 'center', fontFamily: DisplayFont.bold, fontSize: 17, textTransform: 'uppercase', color: Palette.ink },
 
   actions: {
     flexDirection: 'row',
@@ -559,8 +570,9 @@ const styles = StyleSheet.create({
   toastError: { backgroundColor: Palette.danger },
   toastText: { flex: 1, color: Palette.white, fontSize: 15, fontWeight: '700' },
   undoBtn: {
+    maxWidth: '45%',
     minHeight: 40,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     borderRadius: 20,
     borderWidth: 2,
     borderColor: Palette.ink,

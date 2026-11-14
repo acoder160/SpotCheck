@@ -116,7 +116,9 @@ export default function FilterModal({ visible, onClose, filters, setFilters, res
               accessibilityRole="button"
               accessibilityState={{ disabled: isDefault }}
             >
-              <Text style={styles.resetBtnText}>{t('filters.reset')}</Text>
+              <Text style={styles.resetBtnText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+                {t('filters.reset')}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={onClose}
@@ -126,7 +128,9 @@ export default function FilterModal({ visible, onClose, filters, setFilters, res
               accessibilityLabel={`${t('filters.applyResults')}: ${count}`}
             >
               <GradientFill name="pink" radius={26} />
-              <Text style={styles.applyBtnText} numberOfLines={1}>{t('filters.applyResults')}</Text>
+              <Text style={styles.applyBtnText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+                {t('filters.applyResults')}
+              </Text>
               <View style={styles.countChip}>
                 <Text style={styles.countChipText}>{count}</Text>
               </View>
@@ -195,7 +199,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   resetBtnDisabled: { opacity: 0.35 },
-  resetBtnText: { fontFamily: DisplayFont.bold, fontSize: 18, letterSpacing: 0.6, textTransform: 'uppercase', color: Palette.ink },
+  resetBtnText: { flexShrink: 1, textAlign: 'center', fontFamily: DisplayFont.bold, fontSize: 18, letterSpacing: 0.6, textTransform: 'uppercase', color: Palette.ink },
   applyBtn: {
     flex: 1,
     minHeight: 56,
@@ -212,8 +216,8 @@ const styles = StyleSheet.create({
   applyBtnText: {
     flexShrink: 1,
     fontFamily: DisplayFont.black,
-    fontSize: 22,
-    letterSpacing: 1,
+    fontSize: 20,
+    letterSpacing: 0.6,
     textTransform: 'uppercase',
     color: Palette.ink,
   },

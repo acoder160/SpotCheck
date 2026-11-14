@@ -10,12 +10,6 @@ import java.util.List;
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    /** Newest first, with the author loaded in the same query. */
-    @EntityGraph(attributePaths = "user")
-    List<Comment> findBySpotIdOrderByCreatedAtDesc(Long spotId);
-
-    long countBySpotId(Long spotId);
-
     /** One page of top-level comments, newest first (keyset on id; idx_comments_spot_toplevel). */
     @EntityGraph(attributePaths = "user")
     List<Comment> findBySpotIdAndParentIsNullAndIdLessThanOrderByIdDesc(Long spotId, Long before,

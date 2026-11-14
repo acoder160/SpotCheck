@@ -40,6 +40,13 @@ export default function AdminPage() {
   const [showComments, setShowComments] = useState(false);
   const [toast, setToast] = useState(null); // { kind: 'success'|'error'|'undo', text }
   const pendingRef = useRef(null); // { item, index, run, timer }
+  // Decisions on their way to the server: reloading the queue before they land would bring those spots back
+  const inFlightRef = useRef(new Set());
+  const track = useCallback((promise) => {
+    inFlightRef.current.add(promise);
+    promise.finally(() => inFlightRef.current.delete(promise));
+    return promise;
+  }, []);
   const toastTimer = useRef(null);
 
   const showToast = useCallback((next) => {
@@ -86,8 +93,8 @@ export default function AdminPage() {
     if (!pending) return;
     clearTimeout(pending.timer);
     pendingRef.current = null;
-    pending.run();
-  }, []);
+    track(pending.run());
+  }, [track]);
 
   useEffect(() => () => flushPending(), [flushPending]);
 
@@ -127,13 +134,13 @@ export default function AdminPage() {
     if (filter === 'ALL') patchItem(item.id, { status: 'VISIBLE', photoStatus: 'OK', reportCount: 0, reports: [], reportScore: 0 });
     else takeOut(item.id);
     try {
-      await api.post(`/admin/spots/${item.id}/keep`);
+      await track(api.post(`/admin/spots/${item.id}/keep`));
       showToast({ kind: 'success', text: t('admin.kept') });
       refreshCounts();
     } catch {
       failed(filter === 'ALL' ? null : item, index);
     }
-  }, [items, filter, flushPending, patchItem, takeOut, showToast, refreshCounts, failed, t]);
+  }, [items, filter, flushPending, track, patchItem, takeOut, showToast, refreshCounts, failed, t]);
 
   // Eliminar el spot o su foto: desaparece al momento y se envía tras 5 s, salvo que se deshaga
   const destructive = useCallback((item, kind) => {
@@ -184,7 +191,8 @@ export default function AdminPage() {
 
   useEffect(() => {
     const onKey = (event) => {
-      if (event.altKey || event.ctrlKey || event.metaKey || isTyping(event.target)) return;
+      // event.repeat: holding a key down would decide one spot after another
+      if (event.repeat || event.altKey || event.ctrlKey || event.metaKey || isTyping(event.target)) return;
       if (document.querySelector('.sheet-overlay')) return;
       // event.code: la tecla física, así Z y P funcionan también con teclado ruso, árabe, etc.
       const key = event.code;
@@ -204,11 +212,14 @@ export default function AdminPage() {
   useEffect(() => {
     if (!items || items.length > 0 || pageInfo.page + 1 >= pageInfo.totalPages) return undefined;
     let cancelled = false;
-    fetchPage(filter, 0)
+    // Send the pending removal now and wait for every decision, or page 0 still holds those spots
+    flushPending();
+    Promise.allSettled([...inFlightRef.current])
+      .then(() => fetchPage(filter, 0))
       .then((data) => { if (!cancelled) applyPage(data, false); })
       .catch(() => { if (!cancelled) failPage(false); });
     return () => { cancelled = true; };
-  }, [items, pageInfo, filter, applyPage, failPage]);
+  }, [items, pageInfo, filter, flushPending, applyPage, failPage]);
 
   const dateFormat = useMemo(() => new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' }), [i18n.language]);
 

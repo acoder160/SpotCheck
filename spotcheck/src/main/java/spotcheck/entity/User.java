@@ -35,6 +35,13 @@ public class User {
     @Column(name = "token_version", nullable = false)
     private Long tokenVersion = 0L;
 
+    /** Proven by a Google sign-in (V9__email_verified.sql). */
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
+
+    public boolean isEmailVerified() { return emailVerified; }
+    public void setEmailVerified(boolean emailVerified) { this.emailVerified = emailVerified; }
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

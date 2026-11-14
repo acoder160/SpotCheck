@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "spotcheck-mobile",
-    "slug": "spotcheck-mobile",
+    "name": "SpotCheck",
+    "slug": "skatemap-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#141414",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -19,7 +19,14 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
       ],
-      "package": "com.acoder160.spotcheckmobile"
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
+      "package": "com.acoderstudio.spotcheck",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "single",
@@ -31,11 +38,12 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "imageWidth": 220,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#141414",
           "dark": {
-            "backgroundColor": "#000000"
+            "image": "./assets/images/splash-icon.png",
+            "backgroundColor": "#141414"
           }
         }
       ],
@@ -45,6 +53,20 @@
           "locationWhenInUsePermission": "Allow SpotCheck to use your location to show nearby skate spots.",
           "isAndroidBackgroundLocationEnabled": false,
           "isIosBackgroundLocationEnabled": false
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow SpotCheck to use the camera to take photos of skate spots.",
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow SpotCheck to access your photos to set a profile picture or spot photo.",
+          "microphonePermission": false
         }
       ],
       "expo-font",
@@ -71,7 +93,7 @@
       }
     },
     "ios": {
-      "bundleIdentifier": "com.acoder160.spotcheckmobile"
+      "bundleIdentifier": "com.acoderstudio.spotcheck"
     }
   }
 }

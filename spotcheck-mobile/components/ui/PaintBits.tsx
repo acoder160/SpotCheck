@@ -135,13 +135,15 @@ export function PaintStrip({ style }: { style?: StyleProp<ViewStyle> }) {
 const styles = StyleSheet.create({
   chip: {
     alignSelf: 'flex-start',
+    maxWidth: '100%',
     borderWidth: 2,
     borderColor: Palette.ink,
     borderRadius: Radius.chip,
-    paddingVertical: 4,
+    paddingVertical: 6,
     paddingHorizontal: 10,
   },
   chipText: {
+    flexShrink: 1,
     fontFamily: DisplayFont.bold,
     fontSize: 16,
     letterSpacing: 0.8,
@@ -163,6 +165,8 @@ const styles = StyleSheet.create({
   starTarget: { minWidth: MIN_TARGET, minHeight: MIN_TARGET, alignItems: 'center', justifyContent: 'center' },
   pill: {
     minHeight: MIN_TARGET,
+    maxWidth: '100%',
+    paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: Radius.control,
     borderWidth: 2,
@@ -174,8 +178,8 @@ const styles = StyleSheet.create({
   },
   pillSelected: { backgroundColor: Palette.asphalt, borderColor: Palette.asphalt },
   pillDisabled: { opacity: 0.35 },
-  pillText: { fontFamily: DisplayFont.bold, fontSize: 18, letterSpacing: 0.6, textTransform: 'uppercase', color: Palette.ink },
-  pillTextBody: { fontSize: 16, fontWeight: '600', color: Palette.ink },
+  pillText: { flexShrink: 1, fontFamily: DisplayFont.bold, fontSize: 18, letterSpacing: 0.6, textTransform: 'uppercase', color: Palette.ink },
+  pillTextBody: { flexShrink: 1, fontSize: 16, fontWeight: '600', color: Palette.ink },
   pillTextSelected: { color: Palette.white },
   paintDot: { width: 14, height: 14, borderRadius: 7, borderWidth: 2, borderColor: Palette.ink },
   paintDotOnDark: { borderColor: Palette.white },

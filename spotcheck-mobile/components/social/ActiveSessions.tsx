@@ -103,7 +103,7 @@ export default function ActiveSessions({ reloadKey }: { reloadKey: number }) {
               {!!s.note && <Text style={styles.note} numberOfLines={2}>{s.note}</Text>}
             </View>
             <View style={[styles.tag, s.hostedByMe && styles.tagHost]}>
-              <Text style={[styles.tagText, s.hostedByMe && { color: Palette.white }]} numberOfLines={1}>
+              <Text style={[styles.tagText, s.hostedByMe && { color: Palette.white }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72}>
                 {s.hostedByMe ? t('live.hosting') : left.has(s.id) ? t('live.notGoing') : t('live.joined')}
               </Text>
             </View>
@@ -187,14 +187,14 @@ const styles = StyleSheet.create({
   spot: { fontSize: 15, fontWeight: '700', color: Palette.ink },
   note: { fontSize: 14, color: Palette.ink, marginTop: 2 },
   meta: { flexShrink: 1, fontSize: 13, color: Palette.inkMuted },
-  tag: { maxWidth: '35%', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 2, borderColor: Palette.ink, backgroundColor: Palette.white },
+  tag: { maxWidth: '42%', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 2, borderColor: Palette.ink, backgroundColor: Palette.white },
   tagHost: { backgroundColor: Palette.asphalt },
   tagText: { fontSize: 13, fontWeight: '800', color: Palette.ink, textTransform: 'uppercase' },
   people: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  btn: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: MIN_TARGET, paddingHorizontal: 14, borderRadius: Radius.control, borderWidth: 2, borderColor: Palette.ink, backgroundColor: Palette.white },
+  btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, maxWidth: '100%', minHeight: MIN_TARGET, paddingVertical: 8, paddingHorizontal: 14, borderRadius: Radius.control, borderWidth: 2, borderColor: Palette.ink, backgroundColor: Palette.white },
   btnDanger: { borderColor: Palette.danger },
-  btnText: { fontFamily: DisplayFont.bold, fontSize: 16, letterSpacing: 0.6, textTransform: 'uppercase', color: Palette.ink },
+  btnText: { flexShrink: 1, textAlign: 'center', fontFamily: DisplayFont.bold, fontSize: 16, letterSpacing: 0.6, textTransform: 'uppercase', color: Palette.ink },
   error: { color: Palette.danger, fontSize: 14, fontWeight: '700' },
   overlay: { flex: 1, backgroundColor: 'rgba(28,28,28,0.6)', justifyContent: 'flex-end' },
   sheet: { maxHeight: '92%', padding: 20, paddingBottom: 32, gap: 6, backgroundColor: Palette.sheet, borderTopLeftRadius: Radius.sheet, borderTopRightRadius: Radius.sheet },

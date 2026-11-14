@@ -18,7 +18,8 @@ function requiredEnv(name: string): string {
 const GOOGLE_PLACES_API_KEY = requiredEnv('GOOGLE_PLACES_API_KEY');
 const GOOGLE_PLACES_SEARCH_URL = 'https://places.googleapis.com/v1/places:searchText';
 const DATABASE_URL = requiredEnv('DATABASE_URL');
-const BOT_USER_ID = process.env.BOT_USER_ID ? BigInt(process.env.BOT_USER_ID) : 1n;
+// No default: user 1 is usually the admin, and imports would be signed with their name
+const BOT_USER_ID = BigInt(requiredEnv('BOT_USER_ID'));
 const FULL_PLACE_FIELD_MASK =
   'places.displayName,places.location,places.photos,places.editorialSummary,places.reviews';
 const SPOT_TYPES = ['STREET', 'PARK', 'RAMPS', 'RAIL', 'LEDGE'] as const;
@@ -118,14 +119,14 @@ async function findExistingSpotId(
   longitude: number,
   db: Pool | PoolClient = pool,
 ): Promise<number | undefined> {
+  // Same place: within 50 m, or the same name within 1 km ("Skatepark Municipal" exists in many cities)
   const result = await db.query(
     `SELECT id
      FROM spots
-     WHERE LOWER(name) = LOWER($1)
-        OR ST_DWithin(
+     WHERE ST_DWithin(
              location::geography,
              ST_SetSRID(ST_MakePoint($2, $3), 4326)::geography,
-             50
+             CASE WHEN LOWER(name) = LOWER($1) THEN 1000 ELSE 50 END
            )
      LIMIT 1`,
     [name, longitude, latitude],
@@ -145,24 +146,6 @@ async function updateCachedRating(spotId: number, db: Pool | PoolClient = pool):
       WHERE id = $1`,
      [spotId],
   );
-}
-
-async function ensureBotRating(spotId: number, db: Pool | PoolClient = pool): Promise<number> {
-  const rating = randomSurfaceRating();
-  await db.query(
-     `INSERT INTO ratings (spot_id, user_id, surface_rating, created_at)
-      VALUES ($1, $2, $3, NOW())
-      ON CONFLICT (user_id, spot_id) DO NOTHING`,
-     [spotId, BOT_USER_ID, rating],
-  );
-  await updateCachedRating(spotId, db);
-  const result = await db.query<{ surface_rating: number }>(
-     `SELECT surface_rating
-      FROM ratings
-      WHERE spot_id = $1 AND user_id = $2`,
-     [spotId, BOT_USER_ID],
-  );
-  return result.rows[0]?.surface_rating ?? rating;
 }
 
 async function downloadPhoto(photoName: string): Promise<Buffer> {
@@ -220,19 +203,9 @@ async function insertSpot(place: Place): Promise<InsertedSpot | SkippedSpot> {
     throw new Error('Google Places returned a place without a name or coordinates.');
   }
 
+  // An existing spot may be a real user's: leave its ratings alone
   const existingSpotId = await findExistingSpotId(name, latitude, longitude);
   if (existingSpotId !== undefined) {
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-      await ensureBotRating(existingSpotId, client);
-      await client.query('COMMIT');
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
-    }
     return {
       status: 'skipped',
       reason: 'Spot already exists in the database.',
@@ -259,7 +232,8 @@ async function insertSpot(place: Place): Promise<InsertedSpot | SkippedSpot> {
          media_url,
          spot_type,
          difficulty_level,
-         created_by
+         created_by,
+         created_at
        )
        VALUES (
          $1,
@@ -268,7 +242,8 @@ async function insertSpot(place: Place): Promise<InsertedSpot | SkippedSpot> {
          $5,
          $7,
          'INTERMEDIATE',
-         $6
+         $6,
+         NOW()
        )
        RETURNING id`,
       [name, getDescription(place), longitude, latitude, mediaUrl, BOT_USER_ID, spotType],
@@ -318,7 +293,6 @@ async function importSkateSpot(query: string): Promise<ImportedSpot | SkippedSpo
   }
   const existingSpotId = await findExistingSpotId(basicName, basicLatitude, basicLongitude);
   if (existingSpotId !== undefined) {
-    await ensureBotRating(existingSpotId);
     return {
       status: 'skipped',
       reason: 'Spot already exists in the database.',
@@ -354,7 +328,14 @@ async function bulkImportSpots(regions: string[]): Promise<BulkImportSummary> {
 
   for (const region of regions) {
     console.error(`Searching region: ${region}`);
-    const places = await searchPlaces(`Skateparks in ${region}`, FULL_PLACE_FIELD_MASK, 20);
+    let places: Place[];
+    try {
+      places = await searchPlaces(`Skateparks in ${region}`, FULL_PLACE_FIELD_MASK, 20);
+    } catch (error) {
+      // One empty region must not lose the summary of the others
+      summary.errors.push({ name: region, reason: error instanceof Error ? error.message : String(error) });
+      continue;
+    }
     for (const place of places) {
       if (summary.total_processed > 0) {
         await new Promise((resolve) => setTimeout(resolve, 1500));
