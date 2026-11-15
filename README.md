@@ -8,6 +8,7 @@ shows places someone has actually stood at. Anyone can browse; with an account y
 comment on and report spots. AI moderation keeps the content clean.
 
 > **Live demo:** [spot-check.live](https://www.spot-check.live/) · press **Try the demo** on the login screen. You don't need an account.
+> **Android APK:** [install page](https://andrii-chaika.vercel.app/spotcheck/) · **Portfolio:** [andrii-chaika.vercel.app](https://andrii-chaika.vercel.app/)
 
 <!-- Screenshots / GIFs: map + clusters, photo-first add flow, spot details, admin swipe moderation -->
 <!-- ![Map](docs/map.gif) -->
