@@ -401,7 +401,8 @@
       "title": "Añade spots desde la app",
       "body": "Añadir un spot necesita la cámara y el GPS del móvil, así que solo está disponible en la app.",
       "get": "Conseguir la app",
-      "soon": "Descarga de la app próximamente"
+      "soon": "Descarga de la app próximamente",
+      "scan": "O escanéalo con la cámara del móvil"
     }
   },
   "safety": {

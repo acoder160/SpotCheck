@@ -401,7 +401,8 @@
       "title": "Add spots from the app",
       "body": "Adding a spot needs your phone's camera and GPS, so it's only available in the mobile app.",
       "get": "Get the app",
-      "soon": "App download coming soon"
+      "soon": "App download coming soon",
+      "scan": "Edo eskaneatu mugikorraren kamerarekin"
     }
   },
   "safety": {
