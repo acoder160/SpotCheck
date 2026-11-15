@@ -24,7 +24,8 @@
         "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "duzj7jrl1",
         "EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET": "spotcheck_preset",
         "EXPO_PUBLIC_CARTO_API_KEY": "cb1_4pbs_1_7e28abe7fa8f46a9d76232c7"
-      }
+      },
+      "environment": "production"
     },
     "production-apk": {
       "extends": "production",
