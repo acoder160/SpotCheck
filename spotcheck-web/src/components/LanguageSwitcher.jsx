@@ -4,6 +4,7 @@ import { SUPPORTED_LANGUAGES, normalizeLanguage } from '../i18n';
 import Sheet from './Sheet';
 import { ChoicePill } from './PaintBits';
 import { GlobeIcon } from './Icons';
+import { CREDITS } from '../config/credits';
 
 const STORAGE_KEY = 'lng';
 
@@ -70,6 +71,11 @@ export default function LanguageSwitcher({ variant = 'inline' }) {
           ))}
         </div>
         <a className="report-legal-link" href="/legal">{t('legal.link')}</a>
+        <p className="credit-line">
+          <span>{t('credit.madeBy', { name: CREDITS.name })}</span>
+          <a href={CREDITS.portfolio} target="_blank" rel="noopener">{t('credit.portfolio')}</a>
+          <a href={CREDITS.code} target="_blank" rel="noopener">{t('credit.code')}</a>
+        </p>
       </Sheet>
     </>
   );

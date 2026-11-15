@@ -267,6 +267,11 @@
   "legal": {
     "link": "Quy định & quyền riêng tư"
   },
+  "credit": {
+    "madeBy": "Phát triển bởi {{name}}",
+    "portfolio": "Portfolio",
+    "code": "Mã nguồn"
+  },
   "social": {
     "map": "Bản đồ",
     "feed": "Bảng tin",

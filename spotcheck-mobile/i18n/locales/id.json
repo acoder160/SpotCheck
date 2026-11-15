@@ -267,6 +267,11 @@
   "legal": {
     "link": "Aturan & privasi"
   },
+  "credit": {
+    "madeBy": "Dibuat oleh {{name}}",
+    "portfolio": "Portofolio",
+    "code": "Kode sumber"
+  },
   "social": {
     "map": "Peta",
     "feed": "Linimasa",

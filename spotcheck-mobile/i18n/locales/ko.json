@@ -267,6 +267,11 @@
   "legal": {
     "link": "규칙 및 개인정보"
   },
+  "credit": {
+    "madeBy": "제작: {{name}}",
+    "portfolio": "포트폴리오",
+    "code": "소스 코드"
+  },
   "social": {
     "map": "지도",
     "feed": "피드",

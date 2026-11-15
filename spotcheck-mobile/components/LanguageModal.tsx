@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Linking } from 'react-native';
 import { hasLegalPage, openLegalPage } from '../utils/legal';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import { SUPPORTED_LANGUAGES, getLanguagePreference, setLanguagePreference } fro
 import { DisplayFont, MIN_TARGET, Palette, Radius } from '../constants/theme';
 import { ChoicePill, PaintStrip } from './ui/PaintBits';
 import { cleanLabel } from '../utils/text';
+import { CREDITS } from '../constants/credits';
 
 /** Language picker, reached from the globe button in the map's top bar. Picking applies and closes. */
 export default function LanguageModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
@@ -57,6 +58,15 @@ export default function LanguageModal({ visible, onClose }: { visible: boolean; 
                 <Text style={styles.legalText}>{t('legal.link')}</Text>
               </TouchableOpacity>
             )}
+            <View style={styles.credit}>
+              <Text style={styles.creditText}>{t('credit.madeBy', { name: CREDITS.name })}</Text>
+              <TouchableOpacity onPress={() => Linking.openURL(CREDITS.portfolio).catch(() => {})} accessibilityRole="link" style={styles.creditLink}>
+                <Text style={styles.legalText}>{t('credit.portfolio')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => Linking.openURL(CREDITS.code).catch(() => {})} accessibilityRole="link" style={styles.creditLink}>
+                <Text style={styles.legalText}>{t('credit.code')}</Text>
+              </TouchableOpacity>
+            </View>
           </ScrollView>
         </View>
       </View>
@@ -98,5 +108,8 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 0, marginTop: 16 },
   list: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   legalLink: { marginTop: 8, minHeight: 40, justifyContent: 'center', alignSelf: 'flex-start' },
+  credit: { width: '100%', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 14, marginTop: 4 },
+  creditText: { fontSize: 14, color: Palette.ink },
+  creditLink: { minHeight: MIN_TARGET, justifyContent: 'center' },
   legalText: { fontSize: 14, fontWeight: '700', color: Palette.ink, textDecorationLine: 'underline', textDecorationColor: Palette.pink },
 });

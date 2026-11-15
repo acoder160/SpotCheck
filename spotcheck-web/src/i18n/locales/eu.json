@@ -267,6 +267,11 @@
   "legal": {
     "link": "Arauak eta pribatutasuna"
   },
+  "credit": {
+    "madeBy": "Egilea: {{name}}",
+    "portfolio": "Portfolioa",
+    "code": "Iturburu-kodea"
+  },
   "social": {
     "map": "Mapa",
     "feed": "Jarduera",

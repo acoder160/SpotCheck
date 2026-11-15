@@ -267,6 +267,11 @@
   "legal": {
     "link": "Kurallar ve gizlilik"
   },
+  "credit": {
+    "madeBy": "Geliştiren: {{name}}",
+    "portfolio": "Portföy",
+    "code": "Kaynak kodu"
+  },
   "social": {
     "map": "Harita",
     "feed": "Akış",

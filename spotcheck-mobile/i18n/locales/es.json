@@ -267,6 +267,11 @@
   "legal": {
     "link": "Normas y privacidad"
   },
+  "credit": {
+    "madeBy": "Hecho por {{name}}",
+    "portfolio": "Portfolio",
+    "code": "Código fuente"
+  },
   "social": {
     "map": "Mapa",
     "feed": "Actividad",

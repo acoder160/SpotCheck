@@ -267,6 +267,11 @@
   "legal": {
     "link": "ルールとプライバシー"
   },
+  "credit": {
+    "madeBy": "制作：{{name}}",
+    "portfolio": "ポートフォリオ",
+    "code": "ソースコード"
+  },
   "social": {
     "map": "マップ",
     "feed": "フィード",

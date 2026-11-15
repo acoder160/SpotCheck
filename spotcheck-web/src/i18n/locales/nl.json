@@ -267,6 +267,11 @@
   "legal": {
     "link": "Regels & privacy"
   },
+  "credit": {
+    "madeBy": "Gemaakt door {{name}}",
+    "portfolio": "Portfolio",
+    "code": "Broncode"
+  },
   "social": {
     "map": "Kaart",
     "feed": "Feed",

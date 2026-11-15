@@ -267,6 +267,11 @@
   "legal": {
     "link": "规则与隐私"
   },
+  "credit": {
+    "madeBy": "由 {{name}} 开发",
+    "portfolio": "作品集",
+    "code": "源代码"
+  },
   "social": {
     "map": "地图",
     "feed": "动态",

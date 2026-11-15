@@ -1270,6 +1270,28 @@
   font-variant-numeric: tabular-nums;
 }
 
+.credit-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  margin: 14px 0 0;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.credit-line a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--paint-pink);
+  text-decoration-thickness: 2px;
+}
+
 .report-legal-link {
   display: inline-block;
   margin-top: 18px;
